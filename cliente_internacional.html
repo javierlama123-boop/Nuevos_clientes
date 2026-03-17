@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>International Client Form · Multi-X</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#002B4F;
+  --navy-dark:#001e38;
+  --navy-light:#003d6e;
+  --salmon:#E8523A;
+  --salmon-light:#f06b55;
+  --bg:#f4f6f8;
+  --surface:#ffffff;
+  --card:#ffffff;
+  --border:#dce3ea;
+  --border-strong:#b0bec9;
+  --fg:#0d1f2d;
+  --muted:#6b7f8e;
+  --muted-light:#97aab6;
+  --success:#1a9e6e;
+  --danger:#d63b2a;
+  --sidebar-w:260px;
+}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh}
+
+aside{
+  position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+  background:var(--navy);display:flex;flex-direction:column;z-index:50;
+}
+.logo-area{
+  padding:1.6rem 1.4rem 1.4rem;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;gap:0.9rem;
+}
+.logo-svg{flex-shrink:0;width:48px;height:48px}
+.logo-text .brand{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.3rem;font-weight:700;color:#fff;
+  letter-spacing:0.04em;text-transform:uppercase;
+}
+.logo-text .sub{
+  font-size:0.68rem;font-weight:400;
+  color:rgba(255,255,255,0.45);
+  text-transform:uppercase;letter-spacing:0.08em;
+}
+nav{flex:1;padding:1rem 0;overflow-y:auto}
+.nav-section{
+  font-size:0.62rem;font-weight:700;letter-spacing:0.12em;
+  text-transform:uppercase;color:rgba(255,255,255,0.3);
+  padding:1rem 1.4rem 0.4rem;
+}
+.nav-item{
+  display:flex;align-items:center;gap:0.8rem;
+  padding:0.72rem 1.4rem;cursor:pointer;
+  font-size:0.88rem;font-weight:500;
+  color:rgba(255,255,255,0.55);
+  border-left:3px solid transparent;
+  transition:all 0.18s;
+}
+.nav-item:hover{color:rgba(255,255,255,0.9);background:rgba(255,255,255,0.06)}
+.nav-item.active{color:#fff;border-left-color:var(--salmon);background:rgba(232,82,58,0.12)}
+.nav-icon{font-size:1rem;width:20px;text-align:center;opacity:0.9}
+.sidebar-footer{
+  padding:1.1rem 1.4rem;
+  border-top:1px solid rgba(255,255,255,0.1);
+  font-size:0.7rem;color:rgba(255,255,255,0.35);line-height:1.8;
+}
+
+main{margin-left:var(--sidebar-w);min-height:100vh}
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 2.5rem;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:40;
+}
+.topbar-left{display:flex;align-items:center;gap:0.6rem}
+.topbar-breadcrumb{font-size:0.8rem;color:var(--muted)}
+.topbar-title{font-size:0.95rem;font-weight:600;color:var(--fg)}
+.badge-intl{
+  font-size:0.65rem;font-weight:700;letter-spacing:0.06em;
+  background:rgba(232,82,58,0.1);color:var(--salmon);
+  padding:0.18rem 0.6rem;border-radius:20px;text-transform:uppercase;
+}
+
+.content{padding:2.5rem}
+.page-header{margin-bottom:2rem;display:flex;justify-content:space-between;align-items:flex-start}
+.page-header h2{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:2rem;font-weight:700;color:var(--navy);letter-spacing:0.01em;
+}
+.page-header p{font-size:0.82rem;color:var(--muted);margin-top:0.25rem}
+
+.progress-bar{
+  display:flex;gap:0;margin-bottom:2rem;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+}
+.step{
+  flex:1;padding:1rem 1.2rem;
+  font-size:0.75rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.07em;
+  color:var(--muted-light);border-right:1px solid var(--border);
+  display:flex;align-items:center;gap:0.5rem;cursor:pointer;
+  transition:background 0.2s;
+}
+.step:last-child{border-right:none}
+.step.active{background:var(--salmon);color:#fff}
+.step.done{background:rgba(26,158,110,0.08);color:var(--success)}
+.step-num{
+  width:22px;height:22px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:0.7rem;background:rgba(255,255,255,0.2);
+}
+.step.done .step-num{background:var(--success);color:#fff}
+
+.section{display:none}
+.section.active{display:block;animation:fadeUp 0.25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:1.8rem;margin-bottom:1.2rem;
+}
+.section-label{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1rem;font-weight:700;color:var(--salmon);
+  letter-spacing:0.02em;margin-bottom:1.4rem;
+  padding-bottom:0.7rem;border-bottom:2px solid var(--salmon);
+  display:flex;align-items:center;gap:0.5rem;
+}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1rem}
+.fg-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:0.4rem}
+label{
+  font-size:0.7rem;font-weight:700;
+  letter-spacing:0.09em;text-transform:uppercase;color:var(--muted);
+}
+label .req{color:var(--salmon);margin-left:2px}
+input,textarea,select{
+  font-family:'Barlow',sans-serif;font-size:0.9rem;
+  padding:0.7rem 1rem;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:7px;color:var(--fg);outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  appearance:none;-webkit-appearance:none;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--salmon);
+  box-shadow:0 0 0 3px rgba(232,82,58,0.1);background:#fff;
+}
+input.error,select.error{border-color:var(--danger)}
+textarea{resize:vertical;min-height:72px}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7f8e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center;
+  padding-right:2.5rem;cursor:pointer;
+}
+.form-hint{font-size:0.72rem;color:var(--muted-light);margin-top:0.25rem}
+
+.radio-group{display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.3rem}
+.radio-opt{
+  display:flex;align-items:center;gap:0.5rem;
+  font-size:0.88rem;cursor:pointer;padding:0.6rem 1rem;
+  border:1.5px solid var(--border);border-radius:7px;
+  transition:all 0.18s;
+}
+.radio-opt input[type=radio]{width:auto;padding:0;background:none;border:none;box-shadow:none}
+.radio-opt:has(input:checked){border-color:var(--salmon);background:rgba(232,82,58,0.06);color:var(--salmon);font-weight:600}
+
+.doc-card{
+  background:var(--card);border:2px dashed var(--border);
+  border-radius:10px;padding:1.8rem;margin-bottom:1.2rem;
+  text-align:center;
+}
+.doc-card.has-file{border-style:solid;border-color:var(--success)}
+.doc-icon{font-size:2rem;margin-bottom:0.5rem}
+.doc-title{font-size:0.88rem;font-weight:600;color:var(--fg);margin-bottom:0.3rem}
+.doc-desc{font-size:0.78rem;color:var(--muted);margin-bottom:1rem;line-height:1.5}
+.file-input-label{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  font-size:0.83rem;font-weight:600;color:var(--salmon);
+  border:1.5px solid var(--salmon);border-radius:7px;
+  padding:0.55rem 1.2rem;cursor:pointer;transition:all 0.18s;
+}
+.file-input-label:hover{background:var(--salmon);color:#fff}
+input[type=file]{display:none}
+.file-name{font-size:0.78rem;color:var(--success);margin-top:0.5rem;font-weight:600}
+
+.download-btn{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  font-size:0.83rem;font-weight:600;color:var(--salmon);
+  border:1.5px solid var(--salmon);border-radius:7px;
+  padding:0.55rem 1.2rem;cursor:pointer;transition:all 0.18s;
+  text-decoration:none;margin-bottom:1rem;
+}
+.download-btn:hover{background:var(--salmon);color:#fff}
+
+.btn{
+  font-family:'Barlow',sans-serif;font-size:0.88rem;font-weight:600;
+  padding:0.75rem 2rem;border-radius:7px;border:none;cursor:pointer;transition:all 0.18s;
+}
+.btn-primary{background:var(--salmon);color:#fff}
+.btn-primary:hover{background:var(--salmon-light);transform:translateY(-1px);box-shadow:0 4px 14px rgba(232,82,58,0.3)}
+.btn-outline{background:transparent;color:var(--salmon);border:1.5px solid var(--salmon)}
+.btn-outline:hover{background:var(--salmon);color:#fff}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{background:var(--navy-light)}
+
+.nav-actions{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);
+}
+
+.info-box{
+  background:rgba(232,82,58,0.04);border:1px solid rgba(232,82,58,0.18);
+  border-radius:8px;padding:1rem 1.2rem;
+  font-size:0.83rem;color:var(--muted);line-height:1.7;
+  margin-bottom:1rem;
+}
+.info-box strong{color:var(--salmon)}
+
+.confidential-notice{
+  background:rgba(0,43,79,0.04);border:1px solid rgba(0,43,79,0.12);
+  border-radius:8px;padding:1rem 1.2rem;
+  font-size:0.78rem;color:var(--muted);line-height:1.7;
+  margin-top:1.5rem;
+}
+
+.toast{
+  position:fixed;bottom:2rem;right:2rem;
+  background:var(--navy);border-radius:8px;
+  padding:0.9rem 1.4rem;font-size:0.85rem;color:#fff;
+  box-shadow:0 8px 32px rgba(0,0,0,0.2);z-index:999;
+  transform:translateY(20px);opacity:0;
+  transition:all 0.3s;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{background:var(--success)}
+.toast.err{background:var(--danger)}
+
+.success-screen{
+  text-align:center;padding:4rem 2rem;
+  display:none;
+}
+.success-screen.show{display:block;animation:fadeUp 0.3s ease}
+.success-icon{font-size:4rem;margin-bottom:1rem}
+.success-screen h2{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:2rem;font-weight:700;color:var(--success);margin-bottom:0.5rem;
+}
+
+@media(max-width:700px){aside{display:none}main{margin-left:0}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo-area">
+    <svg class="logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="8" fill="#E8523A"/>
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="20"
+        fill="white" letter-spacing="1">MX</text>
+    </svg>
+    <div class="logo-text">
+      <div class="brand">Multi-X</div>
+      <div class="sub">Client Portal</div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-section">Form Sections</div>
+    <div class="nav-item active" id="nav-s1" onclick="goStep(1)"><span class="nav-icon">🌐</span> General Information</div>
+    <div class="nav-item" id="nav-s2" onclick="goStep(2)"><span class="nav-icon">👤</span> Legal Representative</div>
+    <div class="nav-item" id="nav-s3" onclick="goStep(3)"><span class="nav-icon">📞</span> Contact</div>
+    <div class="nav-item" id="nav-s4" onclick="goStep(4)"><span class="nav-icon">📎</span> Documentation</div>
+  </nav>
+  <div class="sidebar-footer">
+    International Client · Registration Form<br/>
+    All fields are required
+  </div>
+</aside>
+
+<main>
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" style="text-decoration:none;color:var(--muted);font-size:0.8rem;font-weight:500">← Back</a>
+      <span style="color:var(--border-strong)">›</span>
+      <span class="topbar-title">International Client Form</span>
+    </div>
+    <span class="badge-intl">🌐 International</span>
+  </div>
+
+  <div class="content">
+
+    <!-- PROGRESS -->
+    <div class="progress-bar" id="progress-bar">
+      <div class="step active" id="ps1" onclick="goStep(1)"><span class="step-num">1</span> General Info</div>
+      <div class="step" id="ps2" onclick="goStep(2)"><span class="step-num">2</span> Legal Rep.</div>
+      <div class="step" id="ps3" onclick="goStep(3)"><span class="step-num">3</span> Contact</div>
+      <div class="step" id="ps4" onclick="goStep(4)"><span class="step-num">4</span> Documents</div>
+    </div>
+
+    <div id="form-wrapper">
+
+      <!-- SECTION 1: GENERAL INFORMATION -->
+      <div class="section active" id="sec1">
+        <div class="page-header">
+          <div>
+            <h2>I. General Information</h2>
+            <p>Basic identification data of the client or company</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">📋 Identification</div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Date <span class="req">*</span></label>
+              <input type="date" id="fecha" />
+            </div>
+            <div class="form-group">
+              <label>Type of Company <span class="req">*</span></label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="tipo_empresa" value="Chilean"> Chilean</label>
+                <label class="radio-opt"><input type="radio" name="tipo_empresa" value="International"> International</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top:0.5rem">
+            <div class="form-group">
+              <label>Client Type <span class="req">*</span></label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="tipo_persona" value="Individual" onchange="togglePersona(this)"> Individual</label>
+                <label class="radio-opt"><input type="radio" name="tipo_persona" value="Legal Entity" onchange="togglePersona(this)"> Legal Entity</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label id="taxid-label">Tax ID / Registration Number <span class="req">*</span></label>
+              <input type="text" id="taxid" placeholder="Enter tax ID or registration number" />
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top:0.5rem">
+            <div class="form-group fg-full">
+              <label>Client Name / Business Name <span class="req">*</span></label>
+              <input type="text" id="razon_social" placeholder="Full name or business name" />
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top:0.5rem">
+            <div class="form-group">
+              <label>Country <span class="req">*</span></label>
+              <input type="text" id="pais" placeholder="Country of origin" />
+            </div>
+            <div class="form-group">
+              <label>Region / State <span class="req">*</span></label>
+              <input type="text" id="region" placeholder="Region or State" />
+            </div>
+            <div class="form-group">
+              <label>City <span class="req">*</span></label>
+              <input type="text" id="ciudad" placeholder="City" />
+            </div>
+            <div class="form-group">
+              <label>Address <span class="req">*</span></label>
+              <input type="text" id="direccion" placeholder="Street, number, district" />
+            </div>
+            <div class="form-group">
+              <label>Mobile Phone <span class="req">*</span></label>
+              <input type="tel" id="celular" placeholder="+1 XXX XXX XXXX" />
+            </div>
+            <div class="form-group">
+              <label>Landline Phone</label>
+              <input type="tel" id="telefono" placeholder="+1 XXX XXX XXXX" />
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <span style="font-size:0.78rem;color:var(--muted)">Step 1 of 4</span>
+          <button class="btn btn-primary" onclick="nextStep(1)">Next →</button>
+        </div>
+      </div>
+
+      <!-- SECTION 2: LEGAL REPRESENTATIVE -->
+      <div class="section" id="sec2">
+        <div class="page-header">
+          <div>
+            <h2>II. Legal Representative & Partners</h2>
+            <p>Data of legal representatives and company partners / shareholders</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">👤 Legal Representative N°1</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name <span class="req">*</span></label>
+              <input type="text" id="rl1_nombre" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label>Tax ID <span class="req">*</span></label>
+              <input type="text" id="rl1_taxid" placeholder="Tax ID number" />
+            </div>
+            <div class="form-group fg-full">
+              <label>Position <span class="req">*</span></label>
+              <input type="text" id="rl1_cargo" placeholder="e.g. CEO, General Manager" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">👤 Legal Representative N°2 <span style="font-size:0.75rem;color:var(--muted);font-weight:400">(if applicable)</span></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="rl2_nombre" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label>Tax ID</label>
+              <input type="text" id="rl2_taxid" placeholder="Tax ID number" />
+            </div>
+            <div class="form-group fg-full">
+              <label>Position</label>
+              <input type="text" id="rl2_cargo" placeholder="e.g. Director" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">🤝 Partners / Shareholders <span style="font-size:0.75rem;color:var(--muted);font-weight:400">(if applicable)</span></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Partner N°1 - Name</label>
+              <input type="text" id="s1_nombre" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label>Partner N°1 - Tax ID</label>
+              <input type="text" id="s1_taxid" placeholder="Tax ID number" />
+            </div>
+            <div class="form-group">
+              <label>Partner N°2 - Name</label>
+              <input type="text" id="s2_nombre" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label>Partner N°2 - Tax ID</label>
+              <input type="text" id="s2_taxid" placeholder="Tax ID number" />
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button class="btn btn-outline" onclick="prevStep(2)">← Previous</button>
+          <button class="btn btn-primary" onclick="nextStep(2)">Next →</button>
+        </div>
+      </div>
+
+      <!-- SECTION 3: CONTACTS -->
+      <div class="section" id="sec3">
+        <div class="page-header">
+          <div>
+            <h2>III. Collections & Commercial Contacts</h2>
+            <p>Contact persons for commercial management and collections</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">💰 Collections Contact</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Contact Person <span class="req">*</span></label>
+              <input type="text" id="cob_nombre" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label>Position <span class="req">*</span></label>
+              <input type="text" id="cob_cargo" placeholder="e.g. Finance Manager" />
+            </div>
+            <div class="form-group">
+              <label>Email <span class="req">*</span></label>
+              <input type="email" id="cob_email" placeholder="email@company.com" />
+            </div>
+            <div class="form-group">
+              <label>Mobile Phone <span class="req">*</span></label>
+              <input type="tel" id="cob_celular" placeholder="+1 XXX XXX XXXX" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">💼 Commercial Contact</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Contact Person <span class="req">*</span></label>
+              <input type="text" id="com_nombre" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label>Position <span class="req">*</span></label>
+              <input type="text" id="com_cargo" placeholder="e.g. Commercial Manager" />
+            </div>
+            <div class="form-group">
+              <label>Email <span class="req">*</span></label>
+              <input type="email" id="com_email" placeholder="email@company.com" />
+            </div>
+            <div class="form-group">
+              <label>Mobile Phone <span class="req">*</span></label>
+              <input type="tel" id="com_celular" placeholder="+1 XXX XXX XXXX" />
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button class="btn btn-outline" onclick="prevStep(3)">← Previous</button>
+          <button class="btn btn-primary" onclick="nextStep(3)">Next →</button>
+        </div>
+      </div>
+
+      <!-- SECTION 4: DOCUMENTATION -->
+      <div class="section" id="sec4">
+        <div class="page-header">
+          <div>
+            <h2>IV. Required Documentation</h2>
+            <p>Attach the documents required to complete the registration</p>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>Important:</strong> All documents must be current and in PDF or image format (JPG/PNG). Maximum file size per document is 10 MB.
+        </div>
+
+        <!-- Certificate of Good Standing -->
+        <div class="card doc-card" id="doc1-card">
+          <div class="doc-icon">📄</div>
+          <div class="doc-title">Certificate of Good Standing <span class="req">*</span></div>
+          <div class="doc-desc">Official document issued by the relevant authority in your country confirming the company's legal standing and existence. Must have been issued within the last 90 days.</div>
+          <label class="file-input-label" for="doc_vigencia">
+            📎 Select file
+          </label>
+          <input type="file" id="doc_vigencia" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFile('doc1','doc_vigencia','doc1-name','doc1-card')" />
+          <div class="file-name" id="doc1-name"></div>
+        </div>
+
+        <!-- MPD Declaration -->
+        <div class="card doc-card" id="doc2-card">
+          <div class="doc-icon">⚖️</div>
+          <div class="doc-title">Multi-X Prevention Model Declaration <span class="req">*</span></div>
+          <div class="doc-desc">
+            Download the document below, complete it with the legal representative's signature, and upload it here.
+          </div>
+          <a href="Declaracion_MPD_Clientes_Nacional.docx" download class="download-btn">
+            ⬇️ Download MPD Declaration
+          </a>
+          <br/>
+          <label class="file-input-label" for="doc_mpd">
+            📎 Upload signed MPD Declaration
+          </label>
+          <input type="file" id="doc_mpd" accept=".pdf,.jpg,.jpeg,.png,.docx" onchange="handleFile('doc2','doc_mpd','doc2-name','doc2-card')" />
+          <div class="file-name" id="doc2-name"></div>
+        </div>
+
+        <!-- Declaration -->
+        <div class="card" style="background:rgba(232,82,58,0.03);border-color:rgba(232,82,58,0.15)">
+          <div class="section-label">✍️ Final Declaration</div>
+          <p style="font-size:0.85rem;color:var(--fg);line-height:1.75">
+            I hereby declare that the information provided in this form is true and accurate, and I acknowledge my obligation to report any changes thereto. I affirm that all my activities are conducted in full compliance with applicable international legal standards.<br/><br/>
+            <strong>Furthermore, I declare that I am not included in any international sanctions lists (including, but not limited to, OFAC, UN, and EU).</strong>
+          </p>
+          <div class="form-grid" style="margin-top:1.2rem">
+            <div class="form-group">
+              <label>Client Representative Name <span class="req">*</span></label>
+              <input type="text" id="firma_nombre" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label>Tax ID / Passport <span class="req">*</span></label>
+              <input type="text" id="firma_taxid" placeholder="ID number" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:0.8rem">
+            <label class="radio-opt" style="width:fit-content;gap:0.6rem">
+              <input type="checkbox" id="acepta_declaracion" style="width:auto;padding:0;border:none;background:none;box-shadow:none" />
+              <span style="font-size:0.86rem">I accept and confirm the declaration above <span class="req">*</span></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="confidential-notice">
+          <strong>CONFIDENTIALITY NOTICE:</strong> The information contained in this form is intended solely for the person(s) and/or companies indicated. This information is confidential and privileged. It may only be used by the recipient(s) for the purpose for which it was provided. Publication, reproduction, distribution, or disclosure of the attached information is prohibited.
+        </div>
+
+        <div class="nav-actions">
+          <button class="btn btn-outline" onclick="prevStep(4)">← Previous</button>
+          <button class="btn btn-navy" onclick="submitForm()">Submit Application ✓</button>
+        </div>
+      </div>
+
+    </div><!-- /form-wrapper -->
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">✅</div>
+      <h2>Application Submitted!</h2>
+      <p style="margin-bottom:1.5rem">Your international client registration form has been submitted successfully. Multi-X's commercial team will review the information and contact you to confirm client creation.</p>
+      <a href="index.html" class="btn btn-primary" style="display:inline-block;text-decoration:none">← Back to Home</a>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentStep = 1;
+const TOTAL = 4;
+
+function toast(msg, type='ok'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(()=>t.className='toast',3000);
+}
+
+function goStep(n){
+  document.querySelectorAll('.section').forEach((s,i)=>{
+    s.classList.toggle('active', i === n-1);
+  });
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i < n-1) s.classList.add('done');
+    if(i === n-1) s.classList.add('active');
+  });
+  document.querySelectorAll('.nav-item').forEach((s,i)=>{
+    s.classList.toggle('active', i === n-1);
+  });
+  currentStep = n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function validateStep(n){
+  if(n===1){
+    const fields = ['fecha','taxid','razon_social','pais','region','ciudad','direccion','celular'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!document.querySelector('input[name="tipo_empresa"]:checked')){toast('Select the type of company','err');return false;}
+    if(!document.querySelector('input[name="tipo_persona"]:checked')){toast('Select the client type','err');return false;}
+    if(!ok){toast('Please complete all required fields','err');return false;}
+  }
+  if(n===2){
+    const fields = ['rl1_nombre','rl1_taxid','rl1_cargo'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!ok){toast('Complete Legal Representative N°1 data','err');return false;}
+  }
+  if(n===3){
+    const fields = ['cob_nombre','cob_cargo','cob_email','cob_celular','com_nombre','com_cargo','com_email','com_celular'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!ok){toast('Complete all contact fields','err');return false;}
+  }
+  if(n===4){
+    if(!document.getElementById('doc_vigencia').files.length){toast('Attach the Certificate of Good Standing','err');return false;}
+    if(!document.getElementById('doc_mpd').files.length){toast('Attach the signed MPD Declaration','err');return false;}
+    if(!document.getElementById('firma_nombre').value.trim()){toast('Enter the representative name','err');return false;}
+    if(!document.getElementById('acepta_declaracion').checked){toast('You must accept the final declaration','err');return false;}
+  }
+  return true;
+}
+
+function nextStep(n){
+  if(!validateStep(n)) return;
+  if(n < TOTAL) goStep(n+1);
+}
+function prevStep(n){
+  if(n > 1) goStep(n-1);
+}
+
+function togglePersona(el){
+  const lbl = document.getElementById('taxid-label');
+  if(el.value==='Individual') lbl.innerHTML='Tax ID / Passport Number <span class="req">*</span>';
+  else lbl.innerHTML='Registration Number <span class="req">*</span>';
+}
+
+function handleFile(docId, inputId, nameId, cardId){
+  const file = document.getElementById(inputId).files[0];
+  if(file){
+    document.getElementById(nameId).textContent = '✓ ' + file.name;
+    document.getElementById(cardId).classList.add('has-file');
+  }
+}
+
+function submitForm(){
+  if(!validateStep(4)) return;
+  document.getElementById('form-wrapper').style.display='none';
+  document.getElementById('progress-bar').style.display='none';
+  document.getElementById('success-screen').classList.add('show');
+  toast('Application submitted successfully!','ok');
+}
+</script>
+</body>
+</html>
