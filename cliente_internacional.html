@@ -256,6 +256,36 @@ input[type=file]{display:none}
 
 @media(max-width:700px){aside{display:none}main{margin-left:0}.form-grid{grid-template-columns:1fr}}
 </style>
+
+<meta name="pa-webhook" content="__PA_WEBHOOK__"/>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, doc, updateDoc, getDocs, query, where
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyA9nrkIVS7o8h8865KoLWcLqeyiCzhLhwA",
+  authDomain: "capacitaciones-29aab.firebaseapp.com",
+  projectId: "capacitaciones-29aab",
+  storageBucket: "capacitaciones-29aab.firebasestorage.app",
+  messagingSenderId: "1013033091630",
+  appId: "1:1013033091630:web:d94384de993c34bb3c55bf"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+window._db_int    = db;
+window._addDoc_i  = addDoc;
+window._updateDoc_i = updateDoc;
+window._col_i     = collection;
+window._doc_ref_i = doc;
+window._getDocs_i = getDocs;
+window._query_i   = query;
+window._where_i   = where;
+window._fbInt     = true;
+document.dispatchEvent(new Event('fb-int-ready'));
+</script>
 </head>
 <body>
 
@@ -296,6 +326,30 @@ input[type=file]{display:none}
   </div>
 
   <div class="content">
+
+    <!-- TOKEN GATE -->
+    <div id="token-gate" style="display:none;min-height:60vh;display:flex;align-items:center;justify-content:center">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;max-width:440px;width:100%;text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:0.8rem">🔑</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;color:var(--navy);margin-bottom:0.4rem">Access Required</div>
+        <p style="font-size:0.84rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.5">
+          To access this form you need an access code provided by Multi-X commercial team.
+        </p>
+        <input type="text" id="token-input"
+          placeholder="e.g. ABCD-1234"
+          style="width:100%;font-family:'Barlow',sans-serif;font-size:1rem;text-align:center;letter-spacing:0.12em;text-transform:uppercase;padding:0.8rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--fg);outline:none;margin-bottom:0.8rem;transition:border-color 0.2s"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter') validarToken()"/>
+        <button onclick="validarToken()" id="btn-validar-token"
+          style="width:100%;font-family:'Barlow',sans-serif;font-size:0.9rem;font-weight:600;padding:0.8rem;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer;transition:background 0.18s">
+          Verify access →
+        </button>
+        <div id="token-err" style="font-size:0.79rem;color:#991b1b;margin-top:0.7rem;display:none"></div>
+        <p style="font-size:0.74rem;color:var(--muted);margin-top:1rem;line-height:1.4">
+          Don't have a code? Contact Multi-X commercial team to request one.
+        </p>
+      </div>
+    </div>
 
     <!-- PROGRESS -->
     <div class="progress-bar" id="progress-bar">
@@ -378,6 +432,10 @@ input[type=file]{display:none}
             <div class="form-group">
               <label>Landline Phone</label>
               <input type="tel" id="telefono" placeholder="+1 XXX XXX XXXX" />
+            </div>
+            <div class="form-group">
+              <label>Contact Email <span class="req">*</span></label>
+              <input type="email" id="email_solicitante" placeholder="contact@company.com" />
             </div>
           </div>
         </div>
@@ -594,7 +652,7 @@ input[type=file]{display:none}
 
         <div class="nav-actions">
           <button class="btn btn-outline" onclick="prevStep(4)">← Previous</button>
-          <button class="btn btn-navy" onclick="submitForm()">Submit Application ✓</button>
+          <button class="btn btn-navy" onclick="enviarSolicitud()">Submit Application ✓</button>
         </div>
       </div>
 
@@ -604,7 +662,24 @@ input[type=file]{display:none}
     <div class="success-screen" id="success-screen">
       <div class="success-icon">✅</div>
       <h2>Application Submitted!</h2>
-      <p style="margin-bottom:1.5rem">Your international client registration form has been submitted successfully. Multi-X's commercial team will review the information and contact you to confirm client creation.</p>
+      <p style="margin-bottom:1rem">Your international client registration has been submitted. Multi-X's commercial team will review your information.</p>
+      <div style="background:rgba(0,43,79,0.05);border:1px solid var(--border);border-radius:10px;padding:1rem 1.4rem;margin-bottom:1.5rem;text-align:left">
+        <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.4rem">Tracking Number</div>
+        <div style="display:flex;align-items:center;gap:0.7rem;flex-wrap:wrap">
+          <code id="solicitud-id-display" style="font-family:'Courier New',monospace;font-size:0.9rem;color:var(--navy);word-break:break-all">—</code>
+          <button id="btn-copiar-id" data-id="" onclick="navigator.clipboard.writeText(this.getAttribute('data-id')).then(()=>{this.textContent='✓ Copied';setTimeout(()=>this.textContent='📋 Copy',2000)})"
+            style="font-family:'Barlow',sans-serif;font-size:0.78rem;font-weight:600;padding:0.3rem 0.8rem;border-radius:5px;border:none;background:var(--navy);color:#fff;cursor:pointer;white-space:nowrap">
+            📋 Copy
+          </button>
+        </div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.5rem">Save this number to check your application status on the portal.</p>
+      </div>
+      <div style="background:#FFFBEB;border:1px solid #fcd34d;border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:1.5rem;font-size:0.8rem;color:#78350f;text-align:left;line-height:1.6">
+        Thank you for completing this form. The information provided will be reviewed by the Legal Department.
+        Multi-X and its subsidiaries have implemented a Crime Prevention Model in accordance with Law No. 20.393.
+        For more information: <a href="https://multi-xsalmon.com/compliance" target="_blank" style="color:#92400e">multi-xsalmon.com/compliance</a>
+        and <a href="https://mef.integridadcorporativa.cl" target="_blank" style="color:#92400e">mef.integridadcorporativa.cl</a>
+      </div>
       <a href="index.html" class="btn btn-primary" style="display:inline-block;text-decoration:none">← Back to Home</a>
     </div>
 
@@ -642,7 +717,7 @@ function goStep(n){
 
 function validateStep(n){
   if(n===1){
-    const fields = ['fecha','taxid','razon_social','pais','region','ciudad','direccion','celular'];
+    const fields = ['fecha','taxid','razon_social','pais','region','ciudad','direccion','celular','email_solicitante'];
     let ok = true;
     fields.forEach(id=>{
       const el = document.getElementById(id);
@@ -711,6 +786,224 @@ function submitForm(){
   document.getElementById('success-screen').classList.add('show');
   toast('Application submitted successfully!','ok');
 }
+
+// ═══════════════════════════════════════════════════════════════
+// TOKEN VALIDATION + FIREBASE SUBMIT — INTERNACIONAL
+// ═══════════════════════════════════════════════════════════════
+const CLOUDINARY_CLOUD  = 'dh6nbakdn';
+const CLOUDINARY_PRESET = 'capacitaciones_unsigned';
+const POWER_AUTOMATE_WEBHOOK = (
+  document.querySelector('meta[name="pa-webhook"]')?.content || ''
+).trim().replace('__PA_WEBHOOK__','');
+
+let tokenValidado = null;
+let tokenDocId    = null;
+
+function fbIntReady(){
+  return new Promise(resolve => {
+    if(window._fbInt){ resolve(); return; }
+    document.addEventListener('fb-int-ready', resolve, { once:true });
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const params   = new URLSearchParams(window.location.search);
+  const tokenUrl = params.get('token');
+  const gate     = document.getElementById('token-gate');
+  const progress = document.getElementById('progress-bar');
+  const formWrap = document.getElementById('form-wrapper');
+
+  if(tokenUrl){
+    gate.style.display = 'flex';
+    progress.style.display = 'none';
+    formWrap.style.display = 'none';
+    document.getElementById('token-input').value = tokenUrl.toUpperCase();
+    setTimeout(() => validarToken(), 500);
+  } else {
+    gate.style.display = 'flex';
+    progress.style.display = 'none';
+    formWrap.style.display = 'none';
+  }
+
+  // Pre-fill today's date
+  const fechaField = document.getElementById('fecha');
+  if(fechaField && !fechaField.value){
+    fechaField.value = new Date().toISOString().slice(0,10);
+  }
+});
+
+async function validarToken(){
+  const codigo = (document.getElementById('token-input').value || '').trim().toUpperCase();
+  const err    = document.getElementById('token-err');
+  const btn    = document.getElementById('btn-validar-token');
+
+  if(!codigo){ err.textContent='Please enter your access code'; err.style.display='block'; return; }
+  err.style.display = 'none';
+  btn.textContent = '⏳ Verifying...';
+  btn.disabled = true;
+
+  try {
+    await fbIntReady();
+    const q    = window._query_i(window._col_i(window._db_int,'invitaciones_clientes'), window._where_i('codigo','==',codigo));
+    const snap = await window._getDocs_i(q);
+
+    if(snap.empty){
+      err.textContent = 'Code not found. Please check and try again.';
+      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
+    }
+    const docSnap = snap.docs[0];
+    const t = docSnap.data();
+    tokenDocId = docSnap.id;
+
+    if(t.estado === 'revocado'){
+      err.textContent = 'This code has been revoked. Contact the commercial team.';
+      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
+    }
+    if(t.estado === 'usado'){
+      err.textContent = 'This code has already been used for a previous application.';
+      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
+    }
+    if(new Date(t.expiraEn) < new Date()){
+      err.textContent = 'This code has expired. Please request a new one.';
+      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
+    }
+    if(t.tipo && t.tipo !== 'internacional'){
+      err.textContent = 'This code is for the National form, not International.';
+      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
+    }
+
+    tokenValidado = { id: docSnap.id, ...t };
+    document.getElementById('token-gate').style.display    = 'none';
+    document.getElementById('progress-bar').style.display  = 'flex';
+    document.getElementById('form-wrapper').style.display  = 'block';
+
+    if(t.email){
+      const ef = document.getElementById('email_solicitante');
+      if(ef) ef.value = t.email;
+    }
+    if(t.empresa){
+      const rf = document.getElementById('razon_social');
+      if(rf && !rf.value) rf.value = t.empresa;
+    }
+  } catch(e){
+    err.textContent = 'Error verifying: ' + e.message;
+    err.style.display = 'block';
+  }
+  btn.textContent = 'Verify access →'; btn.disabled = false;
+}
+
+async function subirCloudinary(file, folder){
+  const form = new FormData();
+  form.append('file', file);
+  form.append('upload_preset', CLOUDINARY_PRESET);
+  form.append('folder', folder);
+  const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/auto/upload`, { method:'POST', body:form });
+  if(!r.ok) throw new Error('Cloudinary error: ' + r.status);
+  return await r.json();
+}
+
+async function enviarSolicitud(){
+  if(!validateStep(4)) return;
+
+  const btn = document.querySelector('.btn.btn-navy[onclick="enviarSolicitud()"]');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ Submitting...'; }
+
+  try {
+    await fbIntReady();
+    toast('Uploading documents...','ok');
+
+    const fileVig = document.getElementById('doc_vigencia').files[0];
+    const fileMpd = document.getElementById('doc_mpd').files[0];
+    const [resVig, resMpd] = await Promise.all([
+      subirCloudinary(fileVig, 'clientes/internacionales/vigencia'),
+      subirCloudinary(fileMpd, 'clientes/internacionales/mpd'),
+    ]);
+
+    const g = id => (document.getElementById(id)?.value || '').trim();
+    const radio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
+
+    const datos = {
+      tipo_formulario:    'internacional',
+      estado:             'pendiente',
+      aprobacion_comercial: 'pendiente',
+      aprobacion_legal:     null,
+      creadoEn:           new Date().toISOString(),
+      tokenUsado:         tokenValidado?.codigo || null,
+      // Step 1
+      fecha:          g('fecha'),
+      tipo_persona:   radio('tipo_persona'),
+      taxid:          g('taxid'),
+      razon_social:   g('razon_social'),
+      pais:           g('pais'),
+      region:         g('region'),
+      ciudad:         g('ciudad'),
+      direccion:      g('direccion'),
+      celular:        g('celular'),
+      telefono:       g('telefono'),
+      email_solicitante: g('email_solicitante'),
+      // Step 2
+      rl1_nombre: g('rl1_nombre'), rl1_taxid: g('rl1_taxid'), rl1_cargo: g('rl1_cargo'),
+      rl2_nombre: g('rl2_nombre'), rl2_taxid: g('rl2_taxid'), rl2_cargo: g('rl2_cargo'),
+      s1_nombre:  g('s1_nombre'),  s1_taxid:  g('s1_taxid'),
+      s2_nombre:  g('s2_nombre'),  s2_taxid:  g('s2_taxid'),
+      // Step 3
+      cob_nombre: g('cob_nombre'), cob_cargo: g('cob_cargo'), cob_email: g('cob_email'), cob_celular: g('cob_celular'),
+      com_nombre: g('com_nombre'), com_cargo: g('com_cargo'), com_email: g('com_email'), com_celular: g('com_celular'),
+      // Step 4
+      firma_nombre: g('firma_nombre'), firma_taxid: g('firma_taxid'),
+      // Docs
+      doc_vigencia: { url: resVig.secure_url, publicId: resVig.public_id, nombre: fileVig.name },
+      doc_mpd:      { url: resMpd.secure_url, publicId: resMpd.public_id, nombre: fileMpd.name },
+      aprobaciones: {},
+      pdfUrl:       null,
+      flowRunId:    null,
+      motivoRechazo: null,
+    };
+
+    toast('Saving application...','ok');
+    const ref = await window._addDoc_i(window._col_i(window._db_int, 'solicitudes_clientes'), datos);
+    const solicitudId = ref.id;
+
+    if(tokenDocId){
+      await window._updateDoc_i(window._doc_ref_i(window._db_int, 'invitaciones_clientes', tokenDocId), {
+        estado: 'usado', solicitudId
+      });
+    }
+
+    if(POWER_AUTOMATE_WEBHOOK && POWER_AUTOMATE_WEBHOOK !== '__PA_WEBHOOK__'){
+      try {
+        await fetch(POWER_AUTOMATE_WEBHOOK, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            solicitudId, tipo:'internacional',
+            razonSocial: datos.razon_social,
+            taxid: datos.taxid,
+            solicitante: datos.email_solicitante,
+            pais: datos.pais, ciudad: datos.ciudad,
+            celular: datos.celular,
+            rl1: `${datos.rl1_nombre} (${datos.rl1_cargo})`,
+            creadoEn: datos.creadoEn,
+          })
+        });
+      } catch(e){ console.warn('Webhook unavailable:', e.message); }
+    }
+
+    document.getElementById('form-wrapper').style.display  = 'none';
+    document.getElementById('progress-bar').style.display  = 'none';
+    const screen = document.getElementById('success-screen');
+    screen.classList.add('show');
+    const idEl = document.getElementById('solicitud-id-display');
+    if(idEl) idEl.textContent = solicitudId;
+    const copyBtn = document.getElementById('btn-copiar-id');
+    if(copyBtn) copyBtn.setAttribute('data-id', solicitudId);
+
+  } catch(e){
+    toast('Error submitting: ' + e.message, 'err');
+    if(btn){ btn.disabled = false; btn.textContent = 'Submit Application ✓'; }
+  }
+}
+
 </script>
 </body>
 </html>
