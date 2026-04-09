@@ -285,15 +285,15 @@ input[type=file]{display:none}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, doc, updateDoc, getDocs, query, where
+  getFirestore, collection, addDoc, doc, getDoc, updateDoc, getDocs, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = {
-  apiKey: "AIzaSyA9nrkIVS7o8h8865KoLWcLqeyiCzhLhwA",
-  authDomain: "capacitaciones-29aab.firebaseapp.com",
-  projectId: "capacitaciones-29aab",
-  storageBucket: "capacitaciones-29aab.firebasestorage.app",
-  messagingSenderId: "1013033091630",
-  appId: "1:1013033091630:web:d94384de993c34bb3c55bf"
+  apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
+  authDomain: "clientesnuevos-e915d.firebaseapp.com",
+  projectId: "clientesnuevos-e915d",
+  storageBucket: "clientesnuevos-e915d.firebasestorage.app",
+  messagingSenderId: "366989020508",
+  appId: "1:366989020508:web:686a320c65ba1fc02bc599"
 };
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
@@ -305,6 +305,7 @@ window._doc_ref   = doc;
 window._getDocs   = getDocs;
 window._query     = query;
 window._where     = where;
+window._getDoc_nac = getDoc;
 window._fbNac     = true;
 document.dispatchEvent(new Event('fb-nac-ready'));
 </script>
@@ -1012,19 +1013,17 @@ async function validarToken(){
 
   try {
     await fbNacReady();
-    const q    = window._query(window._col(window._db_nac,'invitaciones_clientes'), window._where('codigo','==',codigo));
-    const snap = await window._getDocs(q);
+    const docSnap = await window._getDoc_nac(window._doc_ref(window._db_nac,'invitaciones_clientes', codigo));
 
-    if(snap.empty){
+    if(!docSnap.exists()){
       err.textContent = 'Código no encontrado. Verifica e intenta de nuevo.';
       err.style.display = 'block';
       btn.textContent = 'Verificar acceso →'; btn.disabled = false;
       return;
     }
 
-    const docSnap = snap.docs[0];
     const t = docSnap.data();
-    tokenDocId = docSnap.id;
+    tokenDocId = codigo;
 
     if(t.estado === 'revocado'){
       err.textContent = 'Este código ha sido revocado. Contacta al equipo comercial.';
