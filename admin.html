@@ -475,7 +475,7 @@ function iniciarApp(user){
   const rol = ROL[user.rol] || ROL.monitor;
 
   // Guardar sesión para SSO con revisar.html
-  sessionStorage.setItem('mx_sesion', JSON.stringify(user));
+  localStorage.setItem('mx_sesion', JSON.stringify(user));
 
   document.getElementById('login-gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -500,7 +500,7 @@ function logout(){
   if(unsub) unsub();
   if(unsubTokens) unsubTokens();
   sesion = null; solicitudes = []; solFilt = [];
-  sessionStorage.removeItem('mx_sesion');
+  localStorage.removeItem('mx_sesion');
   document.getElementById('login-gate').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('inp-usuario').value = '';
