@@ -313,11 +313,231 @@ body{
 }
 .progress-bar-fill{height:100%;border-radius:20px;background:var(--navy)}
 
-@media(max-width:640px){
-  .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .monitor-table th:nth-child(4),.monitor-table td:nth-child(4),
-  .monitor-table th:nth-child(5),.monitor-table td:nth-child(5){display:none}
+/* ── TOPBAR LOGIN BUTTON ── */
+.topbar-portal{
+  position:fixed;top:1rem;right:1.5rem;z-index:100;
+  display:flex;align-items:center;gap:0.7rem;
 }
+.btn-login-portal{
+  font-family:'Barlow',sans-serif;font-size:0.82rem;font-weight:600;
+  padding:0.5rem 1.1rem;border-radius:7px;border:none;cursor:pointer;
+  background:var(--navy);color:#fff;transition:all 0.18s;
+  display:flex;align-items:center;gap:0.5rem;
+  box-shadow:0 2px 8px rgba(0,43,79,0.18);
+}
+.btn-login-portal:hover{background:var(--navy-light)}
+.user-chip{
+  display:flex;align-items:center;gap:0.5rem;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:0.35rem 0.8rem 0.35rem 0.45rem;
+  font-size:0.8rem;font-weight:600;color:var(--fg);
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;
+  transition:box-shadow 0.18s;
+}
+.user-chip:hover{box-shadow:0 4px 14px rgba(0,0,0,0.12)}
+.user-avatar{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.7rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.avatar-superadmin{background:#7c3aed}
+.avatar-admin{background:var(--navy)}
+.avatar-comercial{background:var(--salmon)}
+.avatar-legal{background:#2563eb}
+.avatar-monitor{background:#059669}
+.user-chip-role{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
+
+/* ── AUTH MODAL ── */
+.auth-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  z-index:500;display:flex;align-items:center;justify-content:center;
+  padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;
+}
+.auth-overlay.open{opacity:1;pointer-events:all}
+.auth-modal{
+  background:var(--surface);border-radius:16px;
+  width:100%;max-width:420px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.18);
+  transform:translateY(16px);transition:transform 0.25s;overflow:hidden;
+}
+.auth-overlay.open .auth-modal{transform:translateY(0)}
+.auth-modal-head{
+  background:var(--navy);padding:1.8rem 2rem 1.5rem;text-align:center;
+}
+.auth-modal-logo{
+  width:48px;height:48px;border-radius:10px;
+  background:#E8523A;display:inline-flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;
+  color:#fff;letter-spacing:1px;margin-bottom:0.9rem;
+}
+.auth-modal-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.4rem;font-weight:700;color:#fff;letter-spacing:0.01em;
+}
+.auth-modal-sub{font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:0.2rem}
+.auth-modal-body{padding:1.8rem 2rem}
+.auth-field{margin-bottom:1rem}
+.auth-field label{
+  display:block;font-size:0.68rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.09em;color:var(--muted);margin-bottom:0.4rem;
+}
+.auth-input{
+  width:100%;font-family:'Barlow',sans-serif;font-size:0.9rem;
+  padding:0.72rem 1rem;background:var(--bg);
+  border:1.5px solid var(--border);border-radius:8px;
+  color:var(--fg);outline:none;transition:border-color 0.2s;
+}
+.auth-input:focus{border-color:var(--navy);background:#fff}
+.auth-input.error{border-color:#dc2626}
+.btn-auth-submit{
+  width:100%;font-family:'Barlow',sans-serif;font-size:0.92rem;font-weight:600;
+  padding:0.82rem;border-radius:8px;border:none;cursor:pointer;
+  background:var(--navy);color:#fff;transition:background 0.18s;margin-top:0.3rem;
+}
+.btn-auth-submit:hover{background:var(--navy-light)}
+.btn-auth-submit:disabled{opacity:0.6;cursor:not-allowed}
+.auth-err{
+  font-size:0.78rem;color:#dc2626;text-align:center;
+  margin-top:0.7rem;display:none;
+}
+.auth-modal-footer{
+  text-align:center;padding:0 2rem 1.5rem;
+  font-size:0.72rem;color:var(--muted);
+}
+
+/* ── PANEL ADMIN (sidebar derecho) ── */
+.admin-panel-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.35);
+  z-index:400;opacity:0;pointer-events:none;transition:opacity 0.2s;
+}
+.admin-panel-overlay.open{opacity:1;pointer-events:all}
+.admin-panel{
+  position:fixed;top:0;right:0;height:100vh;width:480px;max-width:95vw;
+  background:var(--surface);z-index:401;
+  box-shadow:-8px 0 32px rgba(0,0,0,0.14);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+.admin-panel-overlay.open .admin-panel{transform:translateX(0)}
+.admin-panel-head{
+  background:var(--navy);padding:1.4rem 1.6rem;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.admin-panel-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.2rem;font-weight:700;color:#fff;
+}
+.admin-panel-sub{font-size:0.7rem;color:rgba(255,255,255,0.45);margin-top:0.1rem}
+.btn-panel-close{
+  background:rgba(255,255,255,0.1);border:none;color:#fff;
+  width:32px;height:32px;border-radius:6px;cursor:pointer;
+  font-size:1rem;display:flex;align-items:center;justify-content:center;
+  transition:background 0.18s;flex-shrink:0;
+}
+.btn-panel-close:hover{background:rgba(255,255,255,0.2)}
+.admin-panel-tabs{
+  display:flex;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.admin-tab{
+  flex:1;padding:0.85rem;font-family:'Barlow',sans-serif;
+  font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;
+  border:none;background:none;cursor:pointer;
+  color:var(--muted);border-bottom:2px solid transparent;
+  transition:all 0.18s;
+}
+.admin-tab.active{color:var(--navy);border-bottom-color:var(--navy)}
+.admin-tab:hover:not(.active){color:var(--fg)}
+.admin-panel-body{flex:1;overflow-y:auto;padding:1.4rem 1.6rem}
+
+/* Usuario cards */
+.user-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;padding:1rem 1.1rem;margin-bottom:0.7rem;
+  display:flex;align-items:center;gap:0.9rem;
+}
+.user-card-avatar{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.85rem;font-weight:700;color:#fff;
+}
+.user-card-info{flex:1;min-width:0}
+.user-card-name{font-size:0.88rem;font-weight:600;color:var(--fg)}
+.user-card-user{font-size:0.75rem;color:var(--muted)}
+.role-badge{
+  font-size:0.64rem;font-weight:700;letter-spacing:0.06em;
+  text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:20px;
+}
+.role-superadmin{background:#f3e8ff;color:#7c3aed}
+.role-admin{background:rgba(0,43,79,0.08);color:var(--navy)}
+.role-comercial{background:rgba(232,82,58,0.1);color:var(--salmon)}
+.role-legal{background:rgba(37,99,235,0.1);color:#2563eb}
+.role-monitor{background:#D1FAE5;color:#065f46}
+.btn-icon{
+  background:none;border:1px solid var(--border);border-radius:6px;
+  width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:0.8rem;transition:all 0.18s;color:var(--muted);
+}
+.btn-icon:hover{border-color:#dc2626;color:#dc2626;background:#FEE2E2}
+
+/* Formulario nuevo usuario */
+.new-user-form{
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:10px;padding:1.2rem;margin-bottom:1.2rem;
+}
+.new-user-form-title{
+  font-size:0.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.08em;color:var(--navy);margin-bottom:1rem;
+}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.7rem}
+.form-row-full{margin-bottom:0.7rem}
+.form-row label,.form-row-full label{
+  display:block;font-size:0.63rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.3rem;
+}
+.form-row input,.form-row select,.form-row-full input,.form-row-full select{
+  width:100%;font-family:'Barlow',sans-serif;font-size:0.85rem;
+  padding:0.55rem 0.8rem;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:7px;
+  color:var(--fg);outline:none;transition:border-color 0.2s;
+}
+.form-row input:focus,.form-row select:focus,
+.form-row-full input:focus,.form-row-full select:focus{border-color:var(--navy)}
+.btn-crear-usuario{
+  width:100%;font-family:'Barlow',sans-serif;font-size:0.85rem;font-weight:600;
+  padding:0.65rem;border-radius:7px;border:none;cursor:pointer;
+  background:var(--navy);color:#fff;transition:background 0.18s;margin-top:0.3rem;
+}
+.btn-crear-usuario:hover{background:var(--navy-light)}
+
+/* Mi perfil tab */
+.perfil-section{margin-bottom:1.5rem}
+.perfil-label{
+  font-size:0.67rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.09em;color:var(--muted);margin-bottom:0.7rem;
+  padding-bottom:0.4rem;border-bottom:1px solid var(--border);
+}
+.perfil-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0.5rem 0;font-size:0.85rem;border-bottom:1px solid var(--border);
+}
+.perfil-row:last-child{border-bottom:none}
+.perfil-row-label{color:var(--muted);font-size:0.78rem}
+.perfil-row-value{font-weight:600;color:var(--fg)}
+
+/* Toast mejorado */
+.toast-portal{
+  position:fixed;bottom:1.5rem;right:1.5rem;
+  font-family:'Barlow',sans-serif;font-size:0.84rem;font-weight:600;
+  padding:0.75rem 1.2rem;border-radius:9px;
+  transform:translateY(20px);opacity:0;pointer-events:none;
+  transition:all 0.3s;z-index:9999;max-width:360px;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.toast-portal.show{transform:translateY(0);opacity:1}
+.toast-portal.ok{background:#D1FAE5;color:#065f46;border:1px solid #6ee7b7}
+.toast-portal.err{background:#FEE2E2;color:#991b1b;border:1px solid #fca5a5}
+.toast-portal.info{background:#DBEAFE;color:#1e40af;border:1px solid #93c5fd}
+
 
 /* ── GENERADOR DE LINKS ── */
 .token-section{
@@ -429,6 +649,65 @@ document.dispatchEvent(new Event('fb-idx-ready'));
 </head>
 <body>
 
+<!-- ── BOTÓN LOGIN TOP RIGHT ── -->
+<div class="topbar-portal" id="topbar-portal">
+  <button class="btn-login-portal" id="btn-abrir-login" onclick="abrirLogin()">
+    🔐 Acceso Interno
+  </button>
+</div>
+
+<!-- ── AUTH MODAL ── -->
+<div class="auth-overlay" id="auth-overlay" onclick="if(event.target===this) cerrarLogin()">
+  <div class="auth-modal">
+    <div class="auth-modal-head">
+      <div class="auth-modal-logo">MX</div>
+      <div class="auth-modal-title">Acceso al Portal</div>
+      <div class="auth-modal-sub">Multi-X S.A. · Panel de Administración</div>
+    </div>
+    <div class="auth-modal-body">
+      <div class="auth-field">
+        <label>Usuario</label>
+        <input type="text" class="auth-input" id="auth-usuario" placeholder="usuario@multix.cl"
+          onkeydown="if(event.key==='Enter') document.getElementById('auth-pass').focus()"/>
+      </div>
+      <div class="auth-field">
+        <label>Contraseña</label>
+        <input type="password" class="auth-input" id="auth-pass" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter') doLogin()"/>
+      </div>
+      <button class="btn-auth-submit" id="btn-auth-submit" onclick="doLogin()">
+        Ingresar →
+      </button>
+      <div class="auth-err" id="auth-err">Usuario o contraseña incorrectos</div>
+    </div>
+    <div class="auth-modal-footer">
+      ¿Problemas para ingresar? Contacta al administrador del sistema
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN PANEL (slide-in derecho) ── -->
+<div class="admin-panel-overlay" id="admin-panel-overlay" onclick="if(event.target===this) cerrarPanel()">
+  <div class="admin-panel" id="admin-panel">
+    <div class="admin-panel-head">
+      <div>
+        <div class="admin-panel-title" id="panel-title">Panel de Administración</div>
+        <div class="admin-panel-sub" id="panel-sub">Superadministrador</div>
+      </div>
+      <button class="btn-panel-close" onclick="cerrarPanel()">✕</button>
+    </div>
+    <div class="admin-panel-tabs" id="panel-tabs">
+      <!-- Tabs se inyectan según rol -->
+    </div>
+    <div class="admin-panel-body" id="panel-body">
+      <!-- Contenido dinámico -->
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast-portal" id="toast-portal"></div>
+
 <div class="header">
   <div class="logo-row">
     <svg class="logo-svg" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -493,10 +772,10 @@ document.dispatchEvent(new Event('fb-idx-ready'));
       <div class="monitor-title">📊 Monitor de Solicitudes</div>
       <div class="monitor-sub">Panel de administración · Solo acceso autorizado</div>
     </div>
-    <div id="monitor-controls" style="display:none;display:flex;gap:0.6rem;align-items:center">
+    <div id="monitor-controls" style="display:none;gap:0.6rem;align-items:center">
       <span id="monitor-live" style="font-size:0.72rem;font-weight:700;color:#059669;background:#D1FAE5;padding:0.2rem 0.65rem;border-radius:20px;letter-spacing:0.06em;text-transform:uppercase">● En vivo</span>
       <button class="btn-monitor btn-sm-outline" onclick="exportMonitorCSV()">⬇ CSV</button>
-      <button class="btn-monitor btn-sm-outline" onclick="cerrarMonitor()">Cerrar sesión ↩</button>
+      <button class="btn-monitor btn-sm-outline" onclick="cerrarSesion()">Cerrar sesión ↩</button>
     </div>
   </div>
 
@@ -504,13 +783,7 @@ document.dispatchEvent(new Event('fb-idx-ready'));
   <div id="monitor-gate" class="monitor-gate">
     <div style="font-size:2.2rem;margin-bottom:0.8rem">🔐</div>
     <h3>Acceso Restringido</h3>
-    <p>Ingresa las credenciales de administrador para ver el monitor de solicitudes</p>
-    <div class="monitor-login-form">
-      <input type="password" id="monitor-pass" placeholder="Contraseña de administrador"
-        onkeydown="if(event.key==='Enter') loginMonitor()"/>
-      <button class="btn-monitor btn-navy" onclick="loginMonitor()">Acceder →</button>
-    </div>
-    <div id="monitor-login-err" style="font-size:0.78rem;color:#991b1b;margin-top:0.7rem;display:none">Contraseña incorrecta</div>
+    <p>Usa el botón <strong>"Acceso Interno"</strong> en la esquina superior derecha para iniciar sesión con tu usuario y contraseña.</p>
   </div>
 
   <!-- Dashboard visible tras autenticación -->
@@ -626,90 +899,86 @@ document.dispatchEvent(new Event('fb-idx-ready'));
     <!-- Detalle expandible -->
     <div id="monitor-detalle" style="display:none;margin-top:1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.5rem"></div>
 
+    <!-- ── GENERADOR DE LINKS TEMPORALES (dentro del monitor) ── -->
+    <div id="token-section" style="display:none;margin-top:1.5rem">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.8rem">
+        <div class="token-header">
+          <div>
+            <div class="token-title">🔑 Links de Acceso para Clientes</div>
+            <div class="token-subtitle">Genera un link + clave temporal para que el cliente pueda completar su solicitud</div>
+          </div>
+          <button class="btn-monitor btn-navy" onclick="toggleTokenForm()">+ Nuevo link</button>
+        </div>
+
+        <!-- Formulario de generación -->
+        <div id="token-form-wrapper" class="token-form" style="display:none">
+          <div style="font-size:0.78rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem;text-transform:uppercase;letter-spacing:0.07em">Crear nuevo acceso temporal</div>
+          <div class="token-form-row">
+            <div class="tf-group">
+              <label>Tipo de formulario</label>
+              <select id="tf-tipo">
+                <option value="nacional">🇨🇱 Nacional</option>
+                <option value="internacional">🌐 Internacional</option>
+              </select>
+            </div>
+            <div class="tf-group">
+              <label>Empresa / Nombre del cliente (opcional)</label>
+              <input type="text" id="tf-empresa" placeholder="Ej: Pesquera Los Andes SpA"/>
+            </div>
+            <div class="tf-group">
+              <label>Email del cliente (opcional)</label>
+              <input type="email" id="tf-email" placeholder="contacto@empresa.cl"/>
+            </div>
+            <div class="tf-group" style="max-width:140px">
+              <label>Vigencia</label>
+              <select id="tf-horas">
+                <option value="24">24 horas</option>
+                <option value="48" selected>48 horas</option>
+                <option value="72">72 horas</option>
+                <option value="168">7 días</option>
+              </select>
+            </div>
+            <button class="btn-generar" onclick="generarToken()">🔗 Generar link</button>
+          </div>
+        </div>
+
+        <!-- Resultado del link generado -->
+        <div id="token-result" style="display:none;background:#D1FAE5;border:1px solid #6ee7b7;border-radius:10px;padding:1.2rem;margin-bottom:1.2rem">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#065f46;margin-bottom:0.5rem">✅ Link generado — copia y envía al cliente</div>
+          <div id="token-result-link" style="font-family:'Courier New',monospace;font-size:0.83rem;word-break:break-all;color:#065f46;margin-bottom:0.5rem"></div>
+          <div style="display:flex;gap:0.6rem;margin-top:0.7rem">
+            <button class="btn-generar" style="font-size:0.78rem;padding:0.4rem 1rem" onclick="copiarLinkGenerado()">📋 Copiar link</button>
+            <button class="btn-monitor btn-sm-outline" onclick="document.getElementById('token-result').style.display='none'">✕ Cerrar</button>
+          </div>
+        </div>
+
+        <!-- Lista de tokens -->
+        <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.6rem">Links generados</div>
+        <div style="overflow-x:auto">
+          <table class="token-list">
+            <thead>
+              <tr>
+                <th>Clave</th>
+                <th>Tipo</th>
+                <th>Empresa</th>
+                <th>Creado</th>
+                <th>Expira</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="token-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:0.82rem">
+                <span class="monitor-spinner"></span>Cargando...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /monitor-dashboard -->
 </div><!-- /monitor-section -->
-
-<!-- ── GENERADOR DE LINKS TEMPORALES ────────────────────── -->
-<div id="token-gate-section" class="token-gate-section" style="display:none">
-  <div style="font-size:1.8rem;margin-bottom:0.7rem">🔑</div>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem">Generador de Links de Acceso</div>
-  <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem">Visible solo para el Área Comercial dentro del Monitor de Administración</p>
-</div>
-
-<div id="token-section" class="token-section" style="display:none">
-  <div class="token-header">
-    <div>
-      <div class="token-title">🔑 Links de Acceso para Clientes</div>
-      <div class="token-subtitle">Genera un link + clave temporal (48h) para que el cliente pueda completar su solicitud</div>
-    </div>
-    <button class="btn-monitor btn-navy" onclick="toggleTokenForm()">+ Nuevo link</button>
-  </div>
-
-  <!-- Formulario de generación -->
-  <div id="token-form-wrapper" class="token-form" style="display:none">
-    <div style="font-size:0.78rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem;text-transform:uppercase;letter-spacing:0.07em">Crear nuevo acceso temporal</div>
-    <div class="token-form-row">
-      <div class="tf-group">
-        <label>Tipo de formulario</label>
-        <select id="tf-tipo">
-          <option value="nacional">🇨🇱 Nacional</option>
-          <option value="internacional">🌐 Internacional</option>
-        </select>
-      </div>
-      <div class="tf-group">
-        <label>Empresa / Nombre del cliente (opcional)</label>
-        <input type="text" id="tf-empresa" placeholder="Ej: Pesquera Los Andes SpA"/>
-      </div>
-      <div class="tf-group">
-        <label>Email del cliente (opcional)</label>
-        <input type="email" id="tf-email" placeholder="contacto@empresa.cl"/>
-      </div>
-      <div class="tf-group" style="max-width:140px">
-        <label>Vigencia</label>
-        <select id="tf-horas">
-          <option value="24">24 horas</option>
-          <option value="48" selected>48 horas</option>
-          <option value="72">72 horas</option>
-          <option value="168">7 días</option>
-        </select>
-      </div>
-      <button class="btn-generar" onclick="generarToken()">🔗 Generar link</button>
-    </div>
-  </div>
-
-  <!-- Resultado del link generado -->
-  <div id="token-result" style="display:none;background:#D1FAE5;border:1px solid #6ee7b7;border-radius:10px;padding:1.2rem;margin-bottom:1.2rem">
-    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#065f46;margin-bottom:0.5rem">✅ Link generado — copia y envía al cliente</div>
-    <div id="token-result-link" style="font-family:'Courier New',monospace;font-size:0.83rem;word-break:break-all;color:#065f46;margin-bottom:0.5rem"></div>
-    <div style="display:flex;gap:0.6rem;margin-top:0.7rem">
-      <button class="btn-generar" style="font-size:0.78rem;padding:0.4rem 1rem" onclick="copiarLinkGenerado()">📋 Copiar link</button>
-      <button class="btn-monitor btn-sm-outline" onclick="document.getElementById('token-result').style.display='none'">✕ Cerrar</button>
-    </div>
-  </div>
-
-  <!-- Lista de tokens -->
-  <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.6rem">Links generados</div>
-  <div style="overflow-x:auto">
-    <table class="token-list">
-      <thead>
-        <tr>
-          <th>Clave</th>
-          <th>Tipo</th>
-          <th>Empresa</th>
-          <th>Creado</th>
-          <th>Expira</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="token-tbody">
-        <tr><td colspan="7" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:0.82rem">
-          <span class="monitor-spinner"></span>Cargando...
-        </td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
 
 <div class="footer">
   Multi-X S.A. · Todos los campos de los formularios son obligatorios<br/>
@@ -804,44 +1073,373 @@ async function consultarEstado(){
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// MONITOR DE ADMINISTRACIÓN
-// Contraseña local simple — en producción reemplazar por
-// autenticación real (Firebase Auth o Azure AD del panel)
+// SISTEMA DE AUTENTICACIÓN — ROLES Y USUARIOS
 // ═══════════════════════════════════════════════════════════════
-const MONITOR_PASS    = 'multix2026';  // ← cambiar antes de producción
-let solicitudes       = [];            // todas las solicitudes de Firestore
-let solicitudesFilt   = [];            // después de aplicar filtros
-let monitorUnsubscribe = null;         // para cancelar el listener
-let sortField         = 'creadoEn';
-let sortAsc           = false;
 
-// ── Login ────────────────────────────────────────────────────
-function loginMonitor(){
-  const pass = (document.getElementById('monitor-pass').value || '').trim();
-  const err  = document.getElementById('monitor-login-err');
-  if(pass !== MONITOR_PASS){
-    err.style.display = 'block';
-    document.getElementById('monitor-pass').value = '';
-    document.getElementById('monitor-pass').focus();
-    setTimeout(() => err.style.display='none', 3000);
-    return;
-  }
-  document.getElementById('monitor-gate').style.display      = 'none';
-  document.getElementById('monitor-dashboard').style.display = 'block';
-  document.getElementById('monitor-controls').style.display  = 'flex';
-  document.getElementById('token-section').style.display     = 'block';
-  iniciarMonitor();
-  iniciarTokenListener();
+// ── SUPERADMIN HARDCODEADO ───────────────────────────────────
+const SUPERADMIN = {
+  usuario:    'superadmin',
+  password:   'MX$uper2026!',   // ← cambiar antes de producción
+  nombre:     'Superadministrador',
+  rol:        'superadmin'
+};
+
+// Estado de sesión
+let sesionActual   = null;   // { usuario, nombre, rol }
+let solicitudes    = [];
+let solicitudesFilt = [];
+let monitorUnsubscribe = null;
+let usuariosCache  = [];
+let sortField = 'creadoEn';
+let sortAsc   = false;
+
+// ── Colores y labels por rol ─────────────────────────────────
+const ROL_META = {
+  superadmin: { label:'Superadmin',  color:'#7c3aed', bg:'#f3e8ff',   cls:'role-superadmin', avatar:'avatar-superadmin', icon:'👑' },
+  admin:      { label:'Administrador', color:'#002B4F', bg:'rgba(0,43,79,0.08)', cls:'role-admin', avatar:'avatar-admin', icon:'🛡️' },
+  comercial:  { label:'Comercial',   color:'#E8523A', bg:'rgba(232,82,58,0.1)', cls:'role-comercial', avatar:'avatar-comercial', icon:'🤝' },
+  legal:      { label:'Legal',       color:'#2563eb', bg:'rgba(37,99,235,0.1)', cls:'role-legal',      avatar:'avatar-legal',      icon:'⚖️' },
+  monitor:    { label:'Monitor',     color:'#059669', bg:'#D1FAE5',    cls:'role-monitor',    avatar:'avatar-monitor',    icon:'📊' },
+};
+
+// ── Helpers FB ───────────────────────────────────────────────
+function fbReady(){
+  return new Promise(resolve => {
+    if(window._fbIdx){ resolve(); return; }
+    document.addEventListener('fb-idx-ready', resolve, { once:true });
+  });
 }
 
-function cerrarMonitor(){
+// ── UI: abrir/cerrar login modal ─────────────────────────────
+function abrirLogin(){
+  document.getElementById('auth-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('auth-usuario').focus(), 200);
+}
+function cerrarLogin(){
+  document.getElementById('auth-overlay').classList.remove('open');
+  document.getElementById('auth-err').style.display = 'none';
+  document.getElementById('auth-usuario').value = '';
+  document.getElementById('auth-pass').value    = '';
+}
+
+// ── Login ────────────────────────────────────────────────────
+async function doLogin(){
+  const usuario = (document.getElementById('auth-usuario').value || '').trim().toLowerCase();
+  const pass    = (document.getElementById('auth-pass').value    || '').trim();
+  const btn     = document.getElementById('btn-auth-submit');
+  const err     = document.getElementById('auth-err');
+
+  if(!usuario || !pass){ err.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  err.style.display = 'none';
+
+  try {
+    // 1. Verificar superadmin hardcodeado
+    if(usuario === SUPERADMIN.usuario && pass === SUPERADMIN.password){
+      iniciarSesion({ usuario: SUPERADMIN.usuario, nombre: SUPERADMIN.nombre, rol: SUPERADMIN.rol });
+      cerrarLogin();
+      return;
+    }
+
+    // 2. Buscar en Firestore usuarios_portal
+    await fbReady();
+    const q    = window._query_idx(window._col_idx(window._db_idx,'usuarios_portal'), window._query_idx);
+    const snap = await window._getDocs_idx(window._col_idx(window._db_idx,'usuarios_portal'));
+    let encontrado = null;
+    snap.forEach(d => {
+      const u = d.data();
+      if(u.usuario === usuario && u.password === pass && u.activo !== false){
+        encontrado = { id: d.id, ...u };
+      }
+    });
+
+    if(!encontrado){
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Ingresar →';
+      return;
+    }
+
+    iniciarSesion({ usuario: encontrado.usuario, nombre: encontrado.nombre, rol: encontrado.rol, id: encontrado.id });
+    cerrarLogin();
+
+  } catch(e){
+    err.textContent = 'Error al verificar: ' + e.message;
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Ingresar →';
+  }
+}
+
+// ── Iniciar sesión: configurar UI según rol ───────────────────
+function iniciarSesion(user){
+  sesionActual = user;
+  const meta   = ROL_META[user.rol] || ROL_META.monitor;
+
+  // Reemplazar botón login por chip de usuario
+  const topbar = document.getElementById('topbar-portal');
+  topbar.innerHTML = `
+    <div class="user-chip" onclick="abrirPanel()">
+      <div class="user-avatar ${meta.avatar}">${meta.icon}</div>
+      <div>
+        <div style="font-size:0.8rem;font-weight:600;color:var(--fg);line-height:1.2">${user.nombre}</div>
+        <div class="user-chip-role">${meta.label}</div>
+      </div>
+      <span style="font-size:0.7rem;color:var(--muted);margin-left:0.3rem">▾</span>
+    </div>`;
+
+  // Activar monitor según rol
+  const puedeVerMonitor = ['superadmin','admin','monitor','comercial','legal'].includes(user.rol);
+  if(puedeVerMonitor){
+    document.getElementById('monitor-gate').style.display      = 'none';
+    document.getElementById('monitor-dashboard').style.display = 'block';
+    document.getElementById('monitor-controls').style.display  = 'flex';
+    iniciarMonitor();
+  }
+
+  // Token section: solo superadmin, admin y comercial
+  const puedeTokens = ['superadmin','admin','comercial'].includes(user.rol);
+  document.getElementById('token-section').style.display = puedeTokens ? 'block' : 'none';
+  if(puedeTokens) iniciarTokenListener();
+
+  // Filtro tabla: comercial/legal solo ven sus solicitudes relevantes
+  // (se aplica en filtrarMonitor)
+
+  toastPortal(`Bienvenido/a, ${user.nombre}`, 'ok');
+}
+
+// ── Cerrar sesión ─────────────────────────────────────────────
+function cerrarSesion(){
   if(monitorUnsubscribe) monitorUnsubscribe();
+  sesionActual = null;
+  solicitudes = []; solicitudesFilt = [];
   document.getElementById('monitor-gate').style.display      = 'block';
   document.getElementById('monitor-dashboard').style.display = 'none';
   document.getElementById('monitor-controls').style.display  = 'none';
   document.getElementById('token-section').style.display     = 'none';
-  document.getElementById('monitor-pass').value = '';
-  solicitudes = []; solicitudesFilt = [];
+  const topbar = document.getElementById('topbar-portal');
+  topbar.innerHTML = `<button class="btn-login-portal" id="btn-abrir-login" onclick="abrirLogin()">🔐 Acceso Interno</button>`;
+  cerrarPanel();
+  toastPortal('Sesión cerrada', 'info');
+}
+
+// ── Panel lateral ─────────────────────────────────────────────
+function abrirPanel(){
+  const user = sesionActual;
+  if(!user) return;
+  const meta = ROL_META[user.rol] || ROL_META.monitor;
+
+  document.getElementById('panel-title').textContent = user.nombre;
+  document.getElementById('panel-sub').textContent   = meta.label;
+
+  // Tabs según rol
+  const esSuperAdmin = user.rol === 'superadmin';
+  const esAdmin      = ['superadmin','admin'].includes(user.rol);
+  const tabs = [];
+  if(esAdmin) tabs.push({ id:'tab-usuarios', label:'👥 Usuarios' });
+  tabs.push({ id:'tab-perfil', label:'👤 Mi Perfil' });
+
+  document.getElementById('panel-tabs').innerHTML = tabs.map((t,i) =>
+    `<button class="admin-tab ${i===0?'active':''}" id="${t.id}" onclick="cambiarTab('${t.id}')">${t.label}</button>`
+  ).join('');
+
+  // Mostrar primera tab
+  if(esAdmin) renderTabUsuarios();
+  else        renderTabPerfil();
+
+  document.getElementById('admin-panel-overlay').classList.add('open');
+}
+
+function cerrarPanel(){
+  document.getElementById('admin-panel-overlay').classList.remove('open');
+}
+
+function cambiarTab(tabId){
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.id === tabId));
+  if(tabId === 'tab-usuarios') renderTabUsuarios();
+  if(tabId === 'tab-perfil')   renderTabPerfil();
+}
+
+// ── Tab: Gestión de Usuarios ─────────────────────────────────
+async function renderTabUsuarios(){
+  const body = document.getElementById('panel-body');
+  body.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted)"><span class="monitor-spinner"></span> Cargando...</div>`;
+
+  await fbReady();
+  const snap = await window._getDocs_idx(window._col_idx(window._db_idx,'usuarios_portal'));
+  usuariosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const esSuperAdmin = sesionActual?.rol === 'superadmin';
+
+  body.innerHTML = `
+    ${esSuperAdmin ? `
+    <div class="new-user-form" id="nuevo-user-form">
+      <div class="new-user-form-title">➕ Crear nuevo usuario</div>
+      <div class="form-row">
+        <div>
+          <label>Nombre completo</label>
+          <input type="text" id="nu-nombre" placeholder="Juan Pérez"/>
+        </div>
+        <div>
+          <label>Usuario (login)</label>
+          <input type="text" id="nu-usuario" placeholder="jpérez" autocomplete="off"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Contraseña</label>
+          <input type="password" id="nu-pass" placeholder="mínimo 8 caracteres" autocomplete="new-password"/>
+        </div>
+        <div>
+          <label>Rol</label>
+          <select id="nu-rol">
+            <option value="admin">🛡️ Administrador</option>
+            <option value="comercial">🤝 Comercial</option>
+            <option value="legal">⚖️ Legal</option>
+            <option value="monitor">📊 Monitor (solo lectura)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-crear-usuario" onclick="crearUsuario()">Crear usuario →</button>
+    </div>` : ''}
+
+    <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.7rem">
+      Usuarios registrados (${usuariosCache.length + 1})
+    </div>
+
+    <!-- Superadmin hardcodeado -->
+    <div class="user-card" style="border-left:3px solid #7c3aed">
+      <div class="user-card-avatar avatar-superadmin">👑</div>
+      <div class="user-card-info">
+        <div class="user-card-name">Superadministrador</div>
+        <div class="user-card-user">@superadmin · <span class="role-badge role-superadmin">Superadmin</span></div>
+      </div>
+      <span style="font-size:0.7rem;color:var(--muted);font-style:italic">Hardcodeado</span>
+    </div>
+
+    ${usuariosCache.map(u => {
+      const meta = ROL_META[u.rol] || ROL_META.monitor;
+      const activo = u.activo !== false;
+      return `
+      <div class="user-card" style="border-left:3px solid ${meta.color};opacity:${activo?1:0.5}">
+        <div class="user-card-avatar ${meta.avatar}">${meta.icon}</div>
+        <div class="user-card-info">
+          <div class="user-card-name">${u.nombre} ${activo?'':'<span style="font-size:0.7rem;color:#dc2626">(desactivado)</span>'}</div>
+          <div class="user-card-user">@${u.usuario} · <span class="role-badge ${meta.cls}">${meta.label}</span></div>
+        </div>
+        ${esSuperAdmin ? `
+        <div style="display:flex;gap:0.4rem">
+          <button class="btn-icon" title="${activo?'Desactivar':'Activar'}" onclick="toggleUsuario('${u.id}',${activo})" style="font-size:0.75rem">
+            ${activo ? '🔒' : '✅'}
+          </button>
+          <button class="btn-icon" title="Eliminar" onclick="eliminarUsuario('${u.id}','${u.nombre}')">🗑</button>
+        </div>` : ''}
+      </div>`;
+    }).join('')}
+  `;
+}
+
+async function crearUsuario(){
+  const nombre  = (document.getElementById('nu-nombre').value  || '').trim();
+  const usuario = (document.getElementById('nu-usuario').value || '').trim().toLowerCase();
+  const pass    = (document.getElementById('nu-pass').value    || '').trim();
+  const rol     = document.getElementById('nu-rol').value;
+
+  if(!nombre || !usuario || !pass){
+    toastPortal('Completa todos los campos', 'err'); return;
+  }
+  if(pass.length < 8){
+    toastPortal('La contraseña debe tener al menos 8 caracteres', 'err'); return;
+  }
+  if(usuario === 'superadmin'){
+    toastPortal('Ese nombre de usuario está reservado', 'err'); return;
+  }
+
+  // Verificar duplicado
+  const dup = usuariosCache.find(u => u.usuario === usuario);
+  if(dup){ toastPortal('Ya existe un usuario con ese nombre', 'err'); return; }
+
+  await fbReady();
+  await window._addDoc_idx(window._col_idx(window._db_idx,'usuarios_portal'), {
+    nombre, usuario, password: pass, rol, activo: true,
+    creadoEn: new Date().toISOString(),
+    creadoPor: sesionActual.usuario
+  });
+  toastPortal(`✅ Usuario @${usuario} creado como ${ROL_META[rol].label}`, 'ok');
+  document.getElementById('nu-nombre').value  = '';
+  document.getElementById('nu-usuario').value = '';
+  document.getElementById('nu-pass').value    = '';
+  renderTabUsuarios();
+}
+
+async function toggleUsuario(id, activo){
+  await fbReady();
+  await window._updateDoc_idx(window._doc_idx(window._db_idx,'usuarios_portal',id), { activo: !activo });
+  toastPortal(activo ? 'Usuario desactivado' : 'Usuario activado', 'info');
+  renderTabUsuarios();
+}
+
+async function eliminarUsuario(id, nombre){
+  if(!confirm(`¿Eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`)) return;
+  await fbReady();
+  await window._deleteDoc_idx(window._doc_idx(window._db_idx,'usuarios_portal',id));
+  toastPortal(`Usuario eliminado`, 'info');
+  renderTabUsuarios();
+}
+
+// ── Tab: Mi Perfil ───────────────────────────────────────────
+function renderTabPerfil(){
+  const user = sesionActual;
+  const meta = ROL_META[user?.rol] || ROL_META.monitor;
+  const body = document.getElementById('panel-body');
+
+  // Permisos por rol
+  const permisos = {
+    superadmin: ['Monitor de solicitudes','Generador de links','Gestión de usuarios','Panel de revisión (todos los roles)'],
+    admin:      ['Monitor de solicitudes','Generador de links','Gestión de usuarios'],
+    comercial:  ['Monitor de solicitudes','Generador de links','Panel de revisión — Área Comercial'],
+    legal:      ['Monitor de solicitudes','Panel de revisión — Área Legal'],
+    monitor:    ['Monitor de solicitudes (solo lectura)'],
+  };
+  const listaPermisos = (permisos[user?.rol] || []).map(p => `<li style="font-size:0.82rem;color:var(--fg);padding:0.3rem 0">${p}</li>`).join('');
+
+  body.innerHTML = `
+    <div style="text-align:center;padding:1.5rem 0 1rem">
+      <div class="user-card-avatar ${meta.avatar}" style="width:60px;height:60px;font-size:1.5rem;margin:0 auto 0.8rem">${meta.icon}</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;color:var(--navy)">${user?.nombre}</div>
+      <span class="role-badge ${meta.cls}" style="font-size:0.72rem">${meta.label}</span>
+    </div>
+
+    <div class="perfil-section">
+      <div class="perfil-label">Información de cuenta</div>
+      <div class="perfil-row">
+        <span class="perfil-row-label">Usuario</span>
+        <span class="perfil-row-value">@${user?.usuario}</span>
+      </div>
+      <div class="perfil-row">
+        <span class="perfil-row-label">Rol</span>
+        <span class="perfil-row-value">${meta.label}</span>
+      </div>
+    </div>
+
+    <div class="perfil-section">
+      <div class="perfil-label">Accesos habilitados</div>
+      <ul style="list-style:none;padding-left:0">${listaPermisos}</ul>
+    </div>
+
+    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+      <button onclick="cerrarSesion()" style="width:100%;font-family:'Barlow',sans-serif;font-size:0.85rem;font-weight:600;padding:0.7rem;border-radius:7px;border:1.5px solid #dc2626;background:transparent;color:#dc2626;cursor:pointer;transition:all 0.18s"
+        onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='transparent'">
+        ↩ Cerrar sesión
+      </button>
+    </div>
+  `;
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function toastPortal(msg, tipo='ok'){
+  const t = document.getElementById('toast-portal');
+  t.textContent = msg;
+  t.className = `toast-portal show ${tipo}`;
+  setTimeout(() => t.className = 'toast-portal', 3500);
 }
 
 // ── Iniciar listener en tiempo real ─────────────────────────
@@ -1128,8 +1726,7 @@ function exportMonitorCSV(){
 
 // Permitir Enter para login
 document.addEventListener('DOMContentLoaded', () => {
-  const mp = document.getElementById('monitor-pass');
-  if(mp) mp.addEventListener('keydown', e => { if(e.key==='Enter') loginMonitor(); });
+  // Auth ahora se maneja desde el modal de login
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -1213,20 +1810,7 @@ function copiarLinkGenerado(){
 }
 
 function toastMonitor(msg, err=false){
-  // Reutilizar toast si existe, o alert
-  const t = document.getElementById('toast-monitor') || (() => {
-    const el = document.createElement('div');
-    el.id = 'toast-monitor';
-    el.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;font-family:Barlow,sans-serif;font-size:0.85rem;font-weight:600;padding:0.7rem 1.2rem;border-radius:8px;z-index:9999;transition:all 0.3s;opacity:0;pointer-events:none';
-    document.body.appendChild(el);
-    return el;
-  })();
-  t.textContent = msg;
-  t.style.background = err ? '#FEE2E2' : '#D1FAE5';
-  t.style.color      = err ? '#991b1b' : '#065f46';
-  t.style.border     = err ? '1px solid #fca5a5' : '1px solid #6ee7b7';
-  t.style.opacity    = '1';
-  setTimeout(() => t.style.opacity = '0', 3500);
+  toastPortal(msg, err ? 'err' : 'ok');
 }
 
 async function revocarToken(id){
