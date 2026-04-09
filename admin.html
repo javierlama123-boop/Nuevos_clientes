@@ -1062,41 +1062,35 @@ function fbReady(){
   });
 }
 
-// ── UI: abrir/cerrar login modal ─────────────────────────────
-function abrirLogin(){
-  document.getElementById('auth-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('auth-usuario').focus(), 200);
-}
-function cerrarLogin(){
-  document.getElementById('auth-overlay').classList.remove('open');
-  document.getElementById('auth-err').style.display = 'none';
-  document.getElementById('auth-usuario').value = '';
-  document.getElementById('auth-pass').value    = '';
-}
+// ── abrirLogin / cerrarLogin (no usadas en admin.html) ──
+function abrirLogin(){ /* no-op en admin.html */ }
+function cerrarLogin(){ /* no-op en admin.html */ }
 
 // ── Login ────────────────────────────────────────────────────
 async function doLogin(){
   const usuario = (document.getElementById('auth-usuario').value || '').trim().toLowerCase();
   const pass    = (document.getElementById('auth-pass').value    || '').trim();
-  const btn     = document.getElementById('btn-auth-submit');
+  const btn     = document.getElementById('btn-login');
   const err     = document.getElementById('auth-err');
 
-  if(!usuario || !pass){ err.style.display='block'; return; }
+  if(!usuario || !pass){
+    err.textContent = 'Ingresa usuario y contraseña';
+    err.style.display = 'block';
+    return;
+  }
   btn.disabled = true; btn.textContent = 'Verificando...';
   err.style.display = 'none';
 
   try {
-    // 1. Verificar superadmin hardcodeado
+    // 1. Superadmin hardcodeado
     if(usuario === SUPERADMIN.usuario && pass === SUPERADMIN.password){
       iniciarSesion({ usuario: SUPERADMIN.usuario, nombre: SUPERADMIN.nombre, rol: SUPERADMIN.rol });
-      cerrarLogin();
       return;
     }
 
     // 2. Buscar en Firestore usuarios_portal
     await fbReady();
-    const q    = window._query_idx(window._col_idx(window._db_idx,'usuarios_portal'), window._query_idx);
-    const snap = await window._getDocs_idx(window._col_idx(window._db_idx,'usuarios_portal'));
+    const snap = await window._getDocs_idx(window._col_idx(window._db_idx, 'usuarios_portal'));
     let encontrado = null;
     snap.forEach(d => {
       const u = d.data();
@@ -1106,71 +1100,31 @@ async function doLogin(){
     });
 
     if(!encontrado){
+      err.textContent = 'Usuario o contraseña incorrectos';
       err.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Ingresar →';
       return;
     }
 
     iniciarSesion({ usuario: encontrado.usuario, nombre: encontrado.nombre, rol: encontrado.rol, id: encontrado.id });
-    cerrarLogin();
 
   } catch(e){
-    err.textContent = 'Error al verificar: ' + e.message;
+    err.textContent = 'Error: ' + e.message;
     err.style.display = 'block';
     btn.disabled = false; btn.textContent = 'Ingresar →';
   }
 }
 
-// ── Iniciar sesión: configurar UI según rol ───────────────────
+// ── iniciarSesion base (será sobreescrita por el override de admin.html) ──
 function iniciarSesion(user){
+  // Esta función es sobreescrita por el override al final del script
+  // No hace nada aquí para evitar errores con elementos inexistentes
   sesionActual = user;
-  const meta   = ROL_META[user.rol] || ROL_META.monitor;
-
-  // Reemplazar botón login por chip de usuario
-  const topbar = document.getElementById('topbar-portal');
-  topbar.innerHTML = `
-    <div class="user-chip" onclick="abrirPanel()">
-      <div class="user-avatar ${meta.avatar}">${meta.icon}</div>
-      <div>
-        <div style="font-size:0.8rem;font-weight:600;color:var(--fg);line-height:1.2">${user.nombre}</div>
-        <div class="user-chip-role">${meta.label}</div>
-      </div>
-      <span style="font-size:0.7rem;color:var(--muted);margin-left:0.3rem">▾</span>
-    </div>`;
-
-  // Activar monitor según rol
-  const puedeVerMonitor = ['superadmin','admin','monitor','comercial','legal'].includes(user.rol);
-  if(puedeVerMonitor){
-    document.getElementById('monitor-gate').style.display      = 'none';
-    document.getElementById('monitor-dashboard').style.display = 'block';
-    document.getElementById('monitor-controls').style.display  = 'flex';
-    iniciarMonitor();
-  }
-
-  // Token section: solo superadmin, admin y comercial
-  const puedeTokens = ['superadmin','admin','comercial'].includes(user.rol);
-  document.getElementById('token-section').style.display = puedeTokens ? 'block' : 'none';
-  if(puedeTokens) iniciarTokenListener();
-
-  // Filtro tabla: comercial/legal solo ven sus solicitudes relevantes
-  // (se aplica en filtrarMonitor)
-
-  toastPortal(`Bienvenido/a, ${user.nombre}`, 'ok');
 }
 
-// ── Cerrar sesión ─────────────────────────────────────────────
+// ── cerrarSesion base (sobreescrita por override de admin.html) ──
 function cerrarSesion(){
-  if(monitorUnsubscribe) monitorUnsubscribe();
-  sesionActual = null;
-  solicitudes = []; solicitudesFilt = [];
-  document.getElementById('monitor-gate').style.display      = 'block';
-  document.getElementById('monitor-dashboard').style.display = 'none';
-  document.getElementById('monitor-controls').style.display  = 'none';
-  document.getElementById('token-section').style.display     = 'none';
-  const topbar = document.getElementById('topbar-portal');
-  topbar.innerHTML = `<button class="btn-login-portal" id="btn-abrir-login" onclick="abrirLogin()">🔐 Acceso Interno</button>`;
-  cerrarPanel();
-  toastPortal('Sesión cerrada', 'info');
+  // Sobreescrita por el override al final del script
 }
 
 // ── Panel lateral ─────────────────────────────────────────────
