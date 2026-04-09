@@ -186,7 +186,7 @@ tr:hover td{background:rgba(0,43,79,0.025)}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, collection, query, orderBy, onSnapshot,
-  doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc
+  doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const cfg = {
   apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
@@ -209,6 +209,7 @@ window.FS_getDocs = getDocs;
 window.FS_add     = addDoc;
 window.FS_update  = updateDoc;
 window.FS_delete  = deleteDoc;
+window.FS_setDoc  = setDoc;
 window.FB_READY   = true;
 document.dispatchEvent(new Event('fb-ready'));
 </script>
@@ -731,7 +732,8 @@ async function generarToken(){
   const codigo  = genCodigo();
   try{
     await fbOk();
-    await window.FS_add(window.FS_col(window.DB,'invitaciones_clientes'),{
+    // Usar el código como ID del documento para poder leerlo directamente sin query
+    await window.FS_setDoc(window.FS_doc(window.DB,'invitaciones_clientes', codigo),{
       codigo, tipo, empresa:empresa||null, email:email||null,
       creadoEn:ahora.toISOString(), expiraEn:expira.toISOString(),
       horas, estado:'activo', solicitudId:null
