@@ -427,7 +427,7 @@ tr:hover td{background:rgba(0,43,79,0.02);cursor:pointer}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, collection, query, orderBy, onSnapshot,
-  doc, getDoc, updateDoc, Timestamp
+  doc, getDoc, updateDoc, Timestamp, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -447,6 +447,7 @@ window._orderBy  = orderBy;
 window._snap     = onSnapshot;
 window._doc      = doc;
 window._getDoc   = getDoc;
+window._getDocs  = getDocs;
 window._updateDoc = updateDoc;
 window._Timestamp = Timestamp;
 window._fbReady  = true;
@@ -507,26 +508,24 @@ document.dispatchEvent(new Event('fb-ready'));
   <div class="gate-wrapper" id="gate-wrapper">
     <div class="gate-card">
       <div class="gate-icon">🔐</div>
-      <div class="gate-title">Acceso al Panel de Revisión</div>
-      <div class="gate-sub">Selecciona tu área e ingresa la contraseña de acceso</div>
-
-      <div class="gate-tabs">
-        <button class="gate-tab active-comercial" id="tab-comercial" onclick="seleccionarArea('comercial')">
-          🤝 Área Comercial
-        </button>
-        <button class="gate-tab" id="tab-legal" onclick="seleccionarArea('legal')">
-          ⚖️ Área Legal
-        </button>
-      </div>
+      <div class="gate-title">Panel de Revisión</div>
+      <div class="gate-sub">Ingresa tu usuario y contraseña de Multi-X para continuar</div>
 
       <div class="gate-form">
+        <input type="text" class="gate-input" id="gate-usuario"
+          placeholder="usuario"
+          onkeydown="if(event.key==='Enter') document.getElementById('gate-pass').focus()"
+          style="letter-spacing:normal;text-transform:none"/>
         <input type="password" class="gate-input" id="gate-pass"
-          placeholder="Contraseña de acceso"
+          placeholder="contraseña"
           onkeydown="if(event.key==='Enter') acceder()"/>
         <button class="btn-gate btn-gate-comercial" id="btn-gate" onclick="acceder()">
           Ingresar →
         </button>
-        <div class="gate-err" id="gate-err">Contraseña incorrecta</div>
+        <div class="gate-err" id="gate-err">Usuario o contraseña incorrectos</div>
+        <p style="font-size:0.73rem;color:var(--muted);margin-top:0.8rem;line-height:1.5">
+          Solo usuarios con rol <strong>Comercial</strong>, <strong>Legal</strong>, <strong>Administrador</strong> o <strong>Superadmin</strong> pueden acceder.
+        </p>
       </div>
     </div>
   </div>
@@ -620,41 +619,83 @@ document.dispatchEvent(new Event('fb-ready'));
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// CONTRASEÑAS — cambiar antes de producción
+// AUTENTICACIÓN — usuarios_portal en Firestore
+// Superadmin hardcodeado como fallback
 // ═══════════════════════════════════════════════════════════════
-const PASS = {
-  comercial: 'comercial2026',
-  legal:     'legal2026'
-};
+const SUPERADMIN_REV = { usuario:'superadmin', password:'MX$uper2026!', nombre:'Superadministrador', rol:'superadmin' };
+
+// Roles que pueden acceder a este panel
+const ROLES_PERMITIDOS = ['superadmin','admin','comercial','legal'];
+
+// Mapa rol → área de revisión
+const ROL_AREA = { superadmin:'superadmin', admin:'superadmin', comercial:'comercial', legal:'legal' };
 
 // Estado de la sesión
-let areaActual    = 'comercial';
+let areaActual     = 'comercial';
 let sesionIniciada = false;
-let solicitudes   = [];
-let unsubscribe   = null;
+let sesionUsuario  = null;
+let solicitudes    = [];
+let unsubscribe    = null;
 let modalSolicitudId = null;
 
-// ── Selección de área ────────────────────────────────────────
-function seleccionarArea(area){
-  areaActual = area;
-  document.getElementById('tab-comercial').className = 'gate-tab' + (area==='comercial' ? ' active-comercial' : '');
-  document.getElementById('tab-legal').className     = 'gate-tab' + (area==='legal'     ? ' active-legal'     : '');
-  document.getElementById('btn-gate').className = `btn-gate btn-gate-${area}`;
-  document.getElementById('gate-pass').value = '';
-  document.getElementById('gate-err').style.display = 'none';
+// ── Acceder ──────────────────────────────────────────────────
+async function acceder(){
+  const usuario = (document.getElementById('gate-usuario').value || '').trim().toLowerCase();
+  const pass    = (document.getElementById('gate-pass').value    || '').trim();
+  const err     = document.getElementById('gate-err');
+  const btn     = document.getElementById('btn-gate');
+
+  if(!usuario || !pass){ err.style.display='block'; err.textContent='Completa usuario y contraseña'; return; }
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Verificando...';
+
+  try {
+    // 1. Superadmin hardcodeado
+    if(usuario === SUPERADMIN_REV.usuario && pass === SUPERADMIN_REV.password){
+      areaActual   = 'superadmin';
+      sesionUsuario = SUPERADMIN_REV;
+      _iniciarSesion();
+      return;
+    }
+
+    // 2. Buscar en Firestore
+    await fbReady();
+    const snap = await window._getDocs(window._col(window._db, 'usuarios_portal'));
+
+    // Buscar coincidencia
+    let encontrado = null;
+    snap.forEach(d => {
+      const u = d.data();
+      if(u.usuario === usuario && u.password === pass && u.activo !== false)
+        encontrado = { id: d.id, ...u };
+    });
+
+    if(!encontrado){
+      err.textContent = 'Usuario o contraseña incorrectos';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Ingresar →';
+      return;
+    }
+
+    if(!ROLES_PERMITIDOS.includes(encontrado.rol)){
+      err.textContent = 'Tu rol no tiene acceso a este panel';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Ingresar →';
+      return;
+    }
+
+    areaActual    = ROL_AREA[encontrado.rol] || 'comercial';
+    sesionUsuario = encontrado;
+    _iniciarSesion();
+
+  } catch(e){
+    err.textContent = 'Error: ' + e.message;
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Ingresar →';
+  }
 }
 
-// ── Acceder ──────────────────────────────────────────────────
-function acceder(){
-  const pass = (document.getElementById('gate-pass').value || '').trim();
-  const err  = document.getElementById('gate-err');
-  if(pass !== PASS[areaActual]){
-    err.style.display = 'block';
-    document.getElementById('gate-pass').value = '';
-    document.getElementById('gate-pass').focus();
-    setTimeout(() => err.style.display = 'none', 3000);
-    return;
-  }
+function _iniciarSesion(){
   sesionIniciada = true;
   document.getElementById('gate-wrapper').style.display = 'none';
   document.getElementById('sidebar').style.display      = 'flex';
@@ -667,34 +708,44 @@ function acceder(){
 function cerrarSesion(){
   if(unsubscribe) unsubscribe();
   sesionIniciada = false;
-  solicitudes = [];
+  sesionUsuario  = null;
+  solicitudes    = [];
   document.getElementById('gate-wrapper').style.display = 'flex';
   document.getElementById('sidebar').style.display      = 'none';
   document.getElementById('topbar').style.display       = 'none';
   document.getElementById('dashboard').style.display    = 'none';
-  document.getElementById('gate-pass').value = '';
+  document.getElementById('gate-usuario').value = '';
+  document.getElementById('gate-pass').value    = '';
+  document.getElementById('btn-gate').disabled  = false;
+  document.getElementById('btn-gate').textContent = 'Ingresar →';
 }
 
-// ── Configurar UI según área ─────────────────────────────────
+// ── Configurar UI según área/rol ─────────────────────────────
 function configurarUI(){
-  const esComercial = areaActual === 'comercial';
-  const label = esComercial ? 'Área Comercial' : 'Área Legal';
-  const icon  = esComercial ? '🤝' : '⚖️';
+  const esSuperAdmin = ['superadmin','admin'].includes(areaActual);
+  const esComercial  = areaActual === 'comercial';
+  const esLegal      = areaActual === 'legal';
+
+  let label, icon, sub;
+  if(esSuperAdmin){ label='Administración'; icon='🛡️'; sub='Vista completa — todos los flujos'; }
+  else if(esComercial){ label='Área Comercial'; icon='🤝'; sub='Revisión comercial (paso 1 de 2)'; }
+  else { label='Área Legal'; icon='⚖️'; sub='Revisión legal (paso 2 de 2)'; }
 
   document.getElementById('topbar-title').textContent  = `Panel de Revisión — ${label}`;
-  document.getElementById('topbar-sub').textContent    = esComercial
-    ? 'Revisión comercial (paso 1 de 2)'
-    : 'Revisión legal (paso 2 de 2) — solo disponible tras aprobación comercial';
+  document.getElementById('topbar-sub').textContent    = sub;
   document.getElementById('topbar-badge').textContent  = `${icon} ${label}`;
-  document.getElementById('topbar-badge').className    = `area-badge area-${areaActual}`;
+  document.getElementById('topbar-badge').className    = `area-badge area-${esComercial?'comercial':esLegal?'legal':'admin'}`;
   document.getElementById('dashboard-title').textContent = `${icon} ${label}`;
-  document.getElementById('dashboard-sub').textContent   = esComercial
-    ? 'Solicitudes asignadas para tu revisión comercial'
-    : 'Solicitudes aprobadas por Comercial — pendientes de revisión legal';
-  document.getElementById('sidebar-user-name').textContent = label;
-  document.getElementById('sidebar-user-role').textContent = esComercial ? 'Revisor Comercial' : 'Revisor Legal';
-  document.getElementById('sidebar-avatar').textContent    = esComercial ? 'C' : 'L';
-  document.getElementById('nav-pendientes').innerHTML = `<span class="nav-icon">${icon}</span> Mis pendientes <span class="nav-badge" id="badge-nav-pendientes">0</span>`;
+  document.getElementById('dashboard-sub').textContent   = esSuperAdmin
+    ? 'Vista completa de todas las solicitudes y flujos de aprobación'
+    : esComercial
+      ? 'Solicitudes pendientes de revisión comercial'
+      : 'Solicitudes aprobadas por Comercial — pendientes de revisión legal';
+  document.getElementById('sidebar-user-name').textContent = sesionUsuario?.nombre || label;
+  document.getElementById('sidebar-user-role').textContent = label;
+  document.getElementById('sidebar-avatar').textContent    = esSuperAdmin ? '🛡️' : esComercial ? 'C' : 'L';
+  document.getElementById('nav-pendientes').innerHTML =
+    `<span class="nav-icon">${icon}</span> Mis pendientes <span class="nav-badge" id="badge-nav-pendientes">0</span>`;
 }
 
 // ── Firebase listener ────────────────────────────────────────
@@ -740,8 +791,12 @@ function actualizarStats(){
 }
 
 function esPendienteParaMi(s){
+  if(['superadmin','admin'].includes(areaActual)){
+    // Admin ve todo lo pendiente en cualquier paso
+    return (!s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente') ||
+      (s.aprobacion_comercial === 'aprobado' && (!s.aprobacion_legal || s.aprobacion_legal === 'pendiente'));
+  }
   if(areaActual === 'comercial'){
-    // Comercial ve todo lo que llegó y no tiene decisión comercial aún
     return !s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente';
   } else {
     // Legal solo ve lo que Comercial aprobó y Legal no decidió aún
@@ -787,6 +842,7 @@ function renderTabla(){
   const tbody    = document.getElementById('tabla-body');
   const filtro   = document.getElementById('filtro-estado').value;
   const buscar   = (document.getElementById('buscar').value || '').toLowerCase();
+  const esAdmin  = ['superadmin','admin'].includes(areaActual);
 
   let lista = solicitudes.filter(s => {
     const pendiente = esPendienteParaMi(s);
@@ -796,7 +852,7 @@ function renderTabla(){
       const hay = ((s.razon_social||'') + ' ' + (s.rut||'') + ' ' + (s.taxid||'')).toLowerCase();
       if(!hay.includes(buscar)) return false;
     }
-    // Legal solo ve solicitudes que al menos llegaron al paso legal (comercial aprobó)
+    // Legal solo ve solicitudes que llegaron a paso legal; admin ve todo
     if(areaActual === 'legal' && s.aprobacion_comercial !== 'aprobado') return false;
     return true;
   });
@@ -882,9 +938,41 @@ function abrirModal(id){
 
   // Box de revisión (si corresponde actuar)
   let reviewBox = '';
+  const esAdmin   = ['superadmin','admin'].includes(areaActual);
   const pendiente = esPendienteParaMi(s);
 
-  if(pendiente){
+  if(esAdmin){
+    const comPend = !s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente';
+    const legPend = s.aprobacion_comercial === 'aprobado' && (!s.aprobacion_legal || s.aprobacion_legal === 'pendiente');
+    let boxes = '';
+    if(comPend){
+      boxes += `
+        <div class="review-box" style="margin-bottom:0.8rem">
+          <div class="review-box-title">🤝 Revisar — Área Comercial</div>
+          <textarea class="review-textarea" id="review-obs-com" placeholder="Observaciones comerciales (opcional)..."></textarea>
+          <div class="review-actions">
+            <button class="btn btn-danger" onclick="decidir('rechazado','comercial')">❌ Rechazar</button>
+            <button class="btn btn-success" onclick="decidir('aprobado','comercial')">✅ Aprobar Comercial</button>
+          </div>
+        </div>`;
+    }
+    if(legPend){
+      boxes += `
+        <div class="review-box">
+          <div class="review-box-title">⚖️ Revisar — Área Legal</div>
+          <textarea class="review-textarea" id="review-obs-leg" placeholder="Observaciones legales (opcional)..."></textarea>
+          <div class="review-actions">
+            <button class="btn btn-danger" onclick="decidir('rechazado','legal')">❌ Rechazar</button>
+            <button class="btn btn-success" onclick="decidir('aprobado','legal')">✅ Aprobar Legal</button>
+          </div>
+        </div>`;
+    }
+    if(!boxes){
+      const ef = s.estado === 'aprobado' ? '✅ Aprobado' : s.estado === 'rechazado' ? '❌ Rechazado' : '⏳ En proceso';
+      boxes = `<div class="blocked-msg">Flujo completado — Estado final: <strong>${ef}</strong></div>`;
+    }
+    reviewBox = boxes;
+  } else if(pendiente){
     const bloqueadoParaLegal = areaActual==='legal' && comStatus !== 'aprobado';
     if(bloqueadoParaLegal){
       reviewBox = `<div class="blocked-msg">🔒 Esta solicitud aún no puede ser revisada por Legal. Primero debe ser aprobada por el Área Comercial.</div>`;
@@ -900,7 +988,6 @@ function abrirModal(id){
         </div>`;
     }
   } else {
-    // Ya revisado
     const miDecision = areaActual==='comercial' ? comStatus : legStatus;
     if(miDecision !== 'pendiente'){
       const color = miDecision==='aprobado' ? '#065f46' : '#991b1b';
@@ -998,29 +1085,30 @@ function cerrarModal(){
 }
 
 // ── Guardar decisión ─────────────────────────────────────────
-async function decidir(decision){
+async function decidir(decision, actionArea){
   const id  = modalSolicitudId;
-  const obs = (document.getElementById('review-obs')?.value || '').trim();
+  // Read obs from the correct textarea (admin has two, others have one)
+  const paso = actionArea || areaActual;
+  const obsId = actionArea === 'comercial' ? 'review-obs-com'
+              : actionArea === 'legal'     ? 'review-obs-leg'
+              : 'review-obs';
+  const obs = (document.getElementById(obsId)?.value || '').trim();
   const s   = solicitudes.find(x => x.id === id);
   if(!s) return;
-
   const now = new Date().toISOString();
   let updates = {};
 
-  if(areaActual === 'comercial'){
-    updates.aprobacion_comercial      = decision;
+  if(paso === 'comercial'){
+    updates.aprobacion_comercial       = decision;
     updates.fecha_aprobacion_comercial = now;
-    updates.obs_comercial             = obs;
-    // Si aprueba comercial, Legal pasa a pendiente; si rechaza, estado final = rechazado
+    updates.obs_comercial              = obs;
     updates.estado = decision === 'aprobado' ? 'en_revision' : 'rechazado';
     if(decision === 'rechazado') updates.motivoRechazo = obs;
-    // Si aprueba, dejar aprobacion_legal como pendiente explícita
-    if(decision === 'aprobado') updates.aprobacion_legal = 'pendiente';
+    if(decision === 'aprobado')  updates.aprobacion_legal = 'pendiente';
   } else {
-    // Legal
-    updates.aprobacion_legal      = decision;
+    updates.aprobacion_legal       = decision;
     updates.fecha_aprobacion_legal = now;
-    updates.obs_legal             = obs;
+    updates.obs_legal              = obs;
     updates.estado = decision === 'aprobado' ? 'aprobado' : 'rechazado';
     if(decision === 'rechazado') updates.motivoRechazo = obs;
   }
@@ -1060,10 +1148,13 @@ function filtrarVista(tipo){
 
 // ── Enter en gate ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  const gu = document.getElementById('gate-usuario');
   const gp = document.getElementById('gate-pass');
+  if(gu) gu.addEventListener('keydown', e => { if(e.key==='Enter') gp?.focus(); });
   if(gp) gp.addEventListener('keydown', e => { if(e.key==='Enter') acceder(); });
   // nav pendientes
-  document.getElementById('nav-pendientes').addEventListener('click', () => filtrarVista('pendientes'));
+  const navP = document.getElementById('nav-pendientes');
+  if(navP) navP.addEventListener('click', () => filtrarVista('pendientes'));
 });
 </script>
 
