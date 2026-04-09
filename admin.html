@@ -295,8 +295,8 @@ document.dispatchEvent(new Event('fb-ready'));
         <div class="kpi-grid" style="grid-template-columns:repeat(7,1fr)">
           <div class="kpi-card"><div class="kpi-num" id="k-total">—</div><div class="kpi-label">Total</div></div>
           <div class="kpi-card kpi-pendiente"><div class="kpi-num" id="k-pend">—</div><div class="kpi-label">Pendientes</div></div>
-          <div class="kpi-card" style="border-top-color:#f97316"><div class="kpi-num" id="k-pend-com" style="color:#f97316">—</div><div class="kpi-label">⏳ Pend. Comercial</div></div>
           <div class="kpi-card" style="border-top-color:#2563eb"><div class="kpi-num" id="k-pend-leg" style="color:#2563eb">—</div><div class="kpi-label">⏳ Pend. Legal</div></div>
+          <div class="kpi-card" style="border-top-color:#f97316"><div class="kpi-num" id="k-pend-com" style="color:#f97316">—</div><div class="kpi-label">⏳ Pend. Comercial</div></div>
           <div class="kpi-card kpi-revision"><div class="kpi-num" id="k-rev">—</div><div class="kpi-label">En revisión</div></div>
           <div class="kpi-card kpi-aprobado"><div class="kpi-num" id="k-apro">—</div><div class="kpi-label">Aprobadas</div></div>
           <div class="kpi-card kpi-rechazado"><div class="kpi-num" id="k-rech">—</div><div class="kpi-label">Rechazadas</div></div>
@@ -344,7 +344,7 @@ document.dispatchEvent(new Event('fb-ready'));
               <th onclick="sortBy('razon_social')">Razón Social ↕</th>
               <th>RUT / Tax ID</th><th>Tipo</th>
               <th onclick="sortBy('estado')">Estado ↕</th>
-              <th>Comercial</th><th>Legal</th><th>Email</th><th>ID</th>
+              <th>Legal</th><th>Comercial</th><th>Email</th><th>ID</th>
             </tr></thead>
             <tbody id="monitor-tbody">
               <tr><td colspan="9" class="empty"><span class="spinner"></span>Cargando...</td></tr>
@@ -552,19 +552,19 @@ function actualizarKPIs(){
   const fin = ap + rc;
   const tasa = fin > 0 ? Math.round(ap/fin*100) : 0;
 
-  // Pendientes por área
-  const pendCom = solicitudes.filter(s =>
-    !s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente'
-  ).length;
+  // Pendientes por área (Legal primero, Comercial segundo)
   const pendLeg = solicitudes.filter(s =>
-    s.aprobacion_comercial === 'aprobado' &&
-    (!s.aprobacion_legal || s.aprobacion_legal === 'pendiente')
+    !s.aprobacion_legal || s.aprobacion_legal === 'pendiente'
+  ).length;
+  const pendCom = solicitudes.filter(s =>
+    s.aprobacion_legal === 'aprobado' &&
+    (!s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente')
   ).length;
 
   document.getElementById('k-total').textContent    = t;
   document.getElementById('k-pend').textContent     = pe;
-  document.getElementById('k-pend-com').textContent = pendCom;
   document.getElementById('k-pend-leg').textContent = pendLeg;
+  document.getElementById('k-pend-com').textContent = pendCom;
   document.getElementById('k-rev').textContent      = re;
   document.getElementById('k-apro').textContent     = ap;
   document.getElementById('k-rech').textContent     = rc;
@@ -646,8 +646,8 @@ function renderTabla(){
       ? '<span class="badge b-nac">🇨🇱 Nac</span>'
       : '<span class="badge b-int">🌐 Int</span>';
     const badge = BADGE_EST[s.estado] || `<span class="badge">${s.estado}</span>`;
-    const com = s.aprobacion_comercial||'—';
-    const leg = s.aprobacion_comercial==='aprobado' ? (s.aprobacion_legal||'pendiente') : '🔒';
+    const leg = s.aprobacion_legal||'—';
+    const com = s.aprobacion_legal==='aprobado' ? (s.aprobacion_comercial||'pendiente') : '🔒';
     const idS = s.id.length>12 ? s.id.substring(0,12)+'…' : s.id;
     return `<tr style="cursor:pointer" onclick="verDetalle('${s.id}')">
       <td style="font-size:0.77rem;color:var(--muted);white-space:nowrap">${fmtF(s.creadoEn)}</td>
@@ -655,8 +655,8 @@ function renderTabla(){
       <td style="font-size:0.78rem;color:var(--muted)">${s.rut||s.taxid||'—'}</td>
       <td>${tipo}</td>
       <td>${badge}</td>
-      <td style="font-size:0.78rem">${com==='aprobado'?'✅':com==='rechazado'?'❌':'⏳'} ${com}</td>
       <td style="font-size:0.78rem">${typeof leg==='string'&&leg!=='🔒'?(leg==='aprobado'?'✅':leg==='rechazado'?'❌':'⏳')+' '+leg:'🔒'}</td>
+      <td style="font-size:0.78rem">${typeof com==='string'&&com!=='🔒'?(com==='aprobado'?'✅':com==='rechazado'?'❌':'⏳')+' '+com:'🔒'}</td>
       <td style="font-size:0.77rem;color:var(--muted)">${s.email_solicitante||'—'}</td>
       <td><span style="font-family:'Courier New',monospace;font-size:0.7rem;color:var(--muted);cursor:pointer"
         title="${s.id}" onclick="event.stopPropagation();copiarTexto('${s.id}',this)">${idS}</span></td>
@@ -699,7 +699,7 @@ function verDetalle(id){
         <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.5rem">Representante legal</div>
         ${row('Nombre',s.rl1_nombre)}${row('RUT',s.rl1_rut||s.rl1_taxid)}${row('Cargo',s.rl1_cargo)}
         <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin:0.8rem 0 0.5rem">Flujo de aprobación</div>
-        ${row('Comercial',s.aprobacion_comercial||'pendiente')}${row('Legal',s.aprobacion_legal||'—')}
+        ${row('Legal',s.aprobacion_legal||'pendiente')}${row('Comercial',s.aprobacion_comercial||'—')}
         ${s.motivoRechazo?row('Motivo rechazo',s.motivoRechazo):''}
       </div>
     </div>
