@@ -740,9 +740,9 @@ function configurarUI(){
   document.getElementById('dashboard-title').textContent = `${icon} ${label}`;
   document.getElementById('dashboard-sub').textContent   = esSuperAdmin
     ? 'Vista completa de todas las solicitudes y flujos de aprobación'
-    : esComercial
-      ? 'Solicitudes pendientes de revisión comercial'
-      : 'Solicitudes aprobadas por Comercial — pendientes de revisión legal';
+    : esLegal
+      ? 'Solicitudes pendientes de revisión legal (Paso 1)'
+      : 'Solicitudes aprobadas por Legal — pendientes de revisión comercial';
   document.getElementById('sidebar-user-name').textContent = sesionUsuario?.nombre || label;
   document.getElementById('sidebar-user-role').textContent = label;
   document.getElementById('sidebar-avatar').textContent    = esSuperAdmin ? '🛡️' : esComercial ? 'C' : 'L';
@@ -776,12 +776,13 @@ function actualizarStats(){
   const area = areaActual;
   const pendientes = solicitudes.filter(s => esPendienteParaMi(s)).length;
   const revision   = solicitudes.filter(s => esEnRevision(s)).length;
-  const aprobados  = solicitudes.filter(s => area==='comercial'
-    ? s.aprobacion_comercial === 'aprobado'
-    : s.aprobacion_legal === 'aprobado').length;
-  const rechazados = solicitudes.filter(s => area==='comercial'
-    ? s.aprobacion_comercial === 'rechazado'
-    : s.aprobacion_legal === 'rechazado').length;
+  // Legal = paso 1, Comercial = paso 2
+  const aprobados  = solicitudes.filter(s => area==='legal'
+    ? s.aprobacion_legal === 'aprobado'
+    : s.aprobacion_comercial === 'aprobado').length;
+  const rechazados = solicitudes.filter(s => area==='legal'
+    ? s.aprobacion_legal === 'rechazado'
+    : s.aprobacion_comercial === 'rechazado').length;
 
   document.getElementById('stat-pendiente').textContent = pendientes;
   document.getElementById('stat-revision').textContent  = revision;
@@ -794,16 +795,17 @@ function actualizarStats(){
 
 function esPendienteParaMi(s){
   if(['superadmin','admin'].includes(areaActual)){
-    // Admin ve todo lo pendiente en cualquier paso
-    return (!s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente') ||
-      (s.aprobacion_comercial === 'aprobado' && (!s.aprobacion_legal || s.aprobacion_legal === 'pendiente'));
+    // Admin ve todo lo pendiente en cualquier paso (Legal primero, Comercial segundo)
+    return (!s.aprobacion_legal || s.aprobacion_legal === 'pendiente') ||
+      (s.aprobacion_legal === 'aprobado' && (!s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente'));
   }
-  if(areaActual === 'comercial'){
-    return !s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente';
+  if(areaActual === 'legal'){
+    // Legal es el PRIMER paso — ve solicitudes sin aprobación legal aún
+    return !s.aprobacion_legal || s.aprobacion_legal === 'pendiente';
   } else {
-    // Legal solo ve lo que Comercial aprobó y Legal no decidió aún
-    return s.aprobacion_comercial === 'aprobado' &&
-      (!s.aprobacion_legal || s.aprobacion_legal === 'pendiente');
+    // Comercial es el SEGUNDO paso — solo ve lo que Legal aprobó
+    return s.aprobacion_legal === 'aprobado' &&
+      (!s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente');
   }
 }
 
@@ -818,6 +820,10 @@ function fmtFecha(iso){
 }
 
 function badgeComercial(s){
+  // Comercial es paso 2 — bloqueado hasta que Legal apruebe
+  if(!s.aprobacion_legal || s.aprobacion_legal !== 'aprobado'){
+    return '<span class="badge" style="background:var(--bg);color:var(--muted)">🔒 Bloqueado</span>';
+  }
   const v = s.aprobacion_comercial || 'pendiente';
   const map = {
     pendiente: '<span class="badge badge-pendiente-comercial">⏳ Pendiente</span>',
@@ -828,9 +834,7 @@ function badgeComercial(s){
 }
 
 function badgeLegal(s){
-  if(!s.aprobacion_comercial || s.aprobacion_comercial !== 'aprobado'){
-    return '<span class="badge" style="background:var(--bg);color:var(--muted)">🔒 Bloqueado</span>';
-  }
+  // Legal es paso 1 — nunca está bloqueado
   const v = s.aprobacion_legal || 'pendiente';
   const map = {
     pendiente: '<span class="badge badge-pendiente-legal">⏳ Pendiente</span>',
@@ -854,15 +858,15 @@ function renderTabla(){
       const hay = ((s.razon_social||'') + ' ' + (s.rut||'') + ' ' + (s.taxid||'')).toLowerCase();
       if(!hay.includes(buscar)) return false;
     }
-    // Legal solo ve solicitudes que llegaron a paso legal; admin ve todo
-    if(areaActual === 'legal' && s.aprobacion_comercial !== 'aprobado') return false;
+    // Comercial solo ve solicitudes que Legal ya aprobó; admin ve todo
+    if(areaActual === 'comercial' && s.aprobacion_legal !== 'aprobado') return false;
     return true;
   });
 
   if(!lista.length){
     tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
       ${areaActual === 'legal'
-        ? 'No hay solicitudes pendientes de revisión legal'
+        ? 'No hay solicitudes pendientes de revisión comercial'
         : 'No hay solicitudes para mostrar'}
     </td></tr>`;
     return;
@@ -912,8 +916,9 @@ function abrirModal(id){
     : '';
 
   // Timeline de aprobación
-  const comStatus = s.aprobacion_comercial || 'pendiente';
-  const legStatus = s.aprobacion_legal || (comStatus === 'aprobado' ? 'pendiente' : 'bloqueado');
+  // Legal = Paso 1, Comercial = Paso 2
+  const legStatus = s.aprobacion_legal || 'pendiente';
+  const comStatus = s.aprobacion_comercial || (legStatus === 'aprobado' ? 'pendiente' : 'bloqueado');
 
   const tsClass = v => v==='aprobado' ? 'ts-approved' : v==='rechazado' ? 'ts-rejected' : v==='bloqueado' ? 'ts-waiting' : 'ts-pending';
   const tsNumClass = v => v==='aprobado' ? 'ts-num-approved' : v==='rechazado' ? 'ts-num-rejected' : 'ts-num-waiting';
@@ -923,18 +928,18 @@ function abrirModal(id){
   const timeline = `
     <div class="approval-timeline">
       <div class="timeline-step">
-        <div class="ts-num ${tsNumClass(comStatus)}">${tsIcon(comStatus)}</div>
-        <div class="ts-label">Paso 1 — Área Comercial</div>
-        <div class="ts-status ${tsClass(comStatus)}">${tsLabel(comStatus)}</div>
-        ${s.fecha_aprobacion_comercial ? `<div class="ts-fecha">${fmtFecha(s.fecha_aprobacion_comercial)}</div>` : ''}
-        ${s.obs_comercial ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">💬 "${s.obs_comercial}"</div>` : ''}
-      </div>
-      <div class="timeline-step">
         <div class="ts-num ${tsNumClass(legStatus)}">${tsIcon(legStatus)}</div>
-        <div class="ts-label">Paso 2 — Área Legal</div>
+        <div class="ts-label">Paso 1 — Área Legal</div>
         <div class="ts-status ${tsClass(legStatus)}">${tsLabel(legStatus)}</div>
         ${s.fecha_aprobacion_legal ? `<div class="ts-fecha">${fmtFecha(s.fecha_aprobacion_legal)}</div>` : ''}
         ${s.obs_legal ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">💬 "${s.obs_legal}"</div>` : ''}
+      </div>
+      <div class="timeline-step">
+        <div class="ts-num ${tsNumClass(comStatus)}">${tsIcon(comStatus)}</div>
+        <div class="ts-label">Paso 2 — Área Comercial</div>
+        <div class="ts-status ${tsClass(comStatus)}">${tsLabel(comStatus)}</div>
+        ${s.fecha_aprobacion_comercial ? `<div class="ts-fecha">${fmtFecha(s.fecha_aprobacion_comercial)}</div>` : ''}
+        ${s.obs_comercial ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">💬 "${s.obs_comercial}"</div>` : ''}
       </div>
     </div>`;
 
@@ -944,28 +949,29 @@ function abrirModal(id){
   const pendiente = esPendienteParaMi(s);
 
   if(esAdmin){
-    const comPend = !s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente';
-    const legPend = s.aprobacion_comercial === 'aprobado' && (!s.aprobacion_legal || s.aprobacion_legal === 'pendiente');
+    // Legal = Paso 1, Comercial = Paso 2
+    const legPend = !s.aprobacion_legal || s.aprobacion_legal === 'pendiente';
+    const comPend = s.aprobacion_legal === 'aprobado' && (!s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente');
     let boxes = '';
-    if(comPend){
-      boxes += `
-        <div class="review-box" style="margin-bottom:0.8rem">
-          <div class="review-box-title">🤝 Revisar — Área Comercial</div>
-          <textarea class="review-textarea" id="review-obs-com" placeholder="Observaciones comerciales (opcional)..."></textarea>
-          <div class="review-actions">
-            <button class="btn btn-danger" onclick="decidir('rechazado','comercial')">❌ Rechazar</button>
-            <button class="btn btn-success" onclick="decidir('aprobado','comercial')">✅ Aprobar Comercial</button>
-          </div>
-        </div>`;
-    }
     if(legPend){
       boxes += `
-        <div class="review-box">
-          <div class="review-box-title">⚖️ Revisar — Área Legal</div>
+        <div class="review-box" style="margin-bottom:0.8rem">
+          <div class="review-box-title">⚖️ Revisar — Área Legal (Paso 1)</div>
           <textarea class="review-textarea" id="review-obs-leg" placeholder="Observaciones legales (opcional)..."></textarea>
           <div class="review-actions">
             <button class="btn btn-danger" onclick="decidir('rechazado','legal')">❌ Rechazar</button>
             <button class="btn btn-success" onclick="decidir('aprobado','legal')">✅ Aprobar Legal</button>
+          </div>
+        </div>`;
+    }
+    if(comPend){
+      boxes += `
+        <div class="review-box">
+          <div class="review-box-title">🤝 Revisar — Área Comercial (Paso 2)</div>
+          <textarea class="review-textarea" id="review-obs-com" placeholder="Observaciones comerciales (opcional)..."></textarea>
+          <div class="review-actions">
+            <button class="btn btn-danger" onclick="decidir('rechazado','comercial')">❌ Rechazar</button>
+            <button class="btn btn-success" onclick="decidir('aprobado','comercial')">✅ Aprobar Comercial</button>
           </div>
         </div>`;
     }
@@ -975,9 +981,9 @@ function abrirModal(id){
     }
     reviewBox = boxes;
   } else if(pendiente){
-    const bloqueadoParaLegal = areaActual==='legal' && comStatus !== 'aprobado';
-    if(bloqueadoParaLegal){
-      reviewBox = `<div class="blocked-msg">🔒 Esta solicitud aún no puede ser revisada por Legal. Primero debe ser aprobada por el Área Comercial.</div>`;
+    const bloqueadoParaComercial = areaActual==='comercial' && legStatus !== 'aprobado';
+    if(bloqueadoParaComercial){
+      reviewBox = `<div class="blocked-msg">🔒 Esta solicitud aún no puede ser revisada por Comercial. Primero debe ser aprobada por el Área Legal.</div>`;
     } else {
       reviewBox = `
         <div class="review-box">
@@ -990,11 +996,11 @@ function abrirModal(id){
         </div>`;
     }
   } else {
-    const miDecision = areaActual==='comercial' ? comStatus : legStatus;
-    if(miDecision !== 'pendiente'){
+    const miDecision = areaActual==='legal' ? legStatus : comStatus;
+    if(miDecision !== 'pendiente' && miDecision !== 'bloqueado'){
       const color = miDecision==='aprobado' ? '#065f46' : '#991b1b';
       const bg    = miDecision==='aprobado' ? '#D1FAE5' : '#FEE2E2';
-      const mis_obs = areaActual==='comercial' ? s.obs_comercial : s.obs_legal;
+      const mis_obs = areaActual==='legal' ? s.obs_legal : s.obs_comercial;
       reviewBox = `
         <div style="background:${bg};border-radius:8px;padding:0.9rem 1.1rem;font-size:0.83rem;color:${color};margin-bottom:0.5rem">
           <strong>Tu decisión:</strong> ${miDecision === 'aprobado' ? '✅ Aprobado' : '❌ Rechazado'}
@@ -1100,17 +1106,19 @@ async function decidir(decision, actionArea){
   const now = new Date().toISOString();
   let updates = {};
 
-  if(paso === 'comercial'){
-    updates.aprobacion_comercial       = decision;
-    updates.fecha_aprobacion_comercial = now;
-    updates.obs_comercial              = obs;
-    updates.estado = decision === 'aprobado' ? 'en_revision' : 'rechazado';
-    if(decision === 'rechazado') updates.motivoRechazo = obs;
-    if(decision === 'aprobado')  updates.aprobacion_legal = 'pendiente';
-  } else {
+  // Legal = Paso 1, Comercial = Paso 2
+  if(paso === 'legal'){
     updates.aprobacion_legal       = decision;
     updates.fecha_aprobacion_legal = now;
     updates.obs_legal              = obs;
+    updates.estado = decision === 'aprobado' ? 'en_revision' : 'rechazado';
+    if(decision === 'rechazado') updates.motivoRechazo = obs;
+    if(decision === 'aprobado')  updates.aprobacion_comercial = 'pendiente';
+  } else {
+    // Comercial = Paso 2 (final)
+    updates.aprobacion_comercial       = decision;
+    updates.fecha_aprobacion_comercial = now;
+    updates.obs_comercial              = obs;
     updates.estado = decision === 'aprobado' ? 'aprobado' : 'rechazado';
     if(decision === 'rechazado') updates.motivoRechazo = obs;
   }
