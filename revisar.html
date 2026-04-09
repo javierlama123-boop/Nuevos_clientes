@@ -431,12 +431,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA9nrkIVS7o8h8865KoLWcLqeyiCzhLhwA",
-  authDomain: "capacitaciones-29aab.firebaseapp.com",
-  projectId: "capacitaciones-29aab",
-  storageBucket: "capacitaciones-29aab.firebasestorage.app",
-  messagingSenderId: "1013033091630",
-  appId: "1:1013033091630:web:d94384de993c34bb3c55bf"
+  apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
+  authDomain: "clientesnuevos-e915d.firebaseapp.com",
+  projectId: "clientesnuevos-e915d",
+  storageBucket: "clientesnuevos-e915d.firebasestorage.app",
+  messagingSenderId: "366989020508",
+  appId: "1:366989020508:web:686a320c65ba1fc02bc599"
 };
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
@@ -622,7 +622,7 @@ document.dispatchEvent(new Event('fb-ready'));
 // AUTENTICACIÓN — usuarios_portal en Firestore
 // Superadmin hardcodeado como fallback
 // ═══════════════════════════════════════════════════════════════
-const SUPERADMIN_REV = { usuario:'superadmin', password:'MX$uper2026!', nombre:'Superadministrador', rol:'superadmin' };
+const SUPERADMIN_REV = { usuario:'superadmin', password:'multi2026', nombre:'Superadministrador', rol:'superadmin' };
 
 // Roles que pueden acceder a este panel
 const ROLES_PERMITIDOS = ['superadmin','admin','comercial','legal'];
@@ -710,6 +710,7 @@ function cerrarSesion(){
   sesionIniciada = false;
   sesionUsuario  = null;
   solicitudes    = [];
+  sessionStorage.removeItem('mx_sesion');
   document.getElementById('gate-wrapper').style.display = 'flex';
   document.getElementById('sidebar').style.display      = 'none';
   document.getElementById('topbar').style.display       = 'none';
@@ -1152,9 +1153,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const gp = document.getElementById('gate-pass');
   if(gu) gu.addEventListener('keydown', e => { if(e.key==='Enter') gp?.focus(); });
   if(gp) gp.addEventListener('keydown', e => { if(e.key==='Enter') acceder(); });
-  // nav pendientes
   const navP = document.getElementById('nav-pendientes');
   if(navP) navP.addEventListener('click', () => filtrarVista('pendientes'));
+
+  // SSO: intentar login automático desde sesión de admin.html
+  try {
+    const stored = sessionStorage.getItem('mx_sesion');
+    if(stored){
+      const user = JSON.parse(stored);
+      const rolesPermitidos = ['superadmin','admin','comercial','legal'];
+      if(user && rolesPermitidos.includes(user.rol)){
+        areaActual    = ROL_AREA[user.rol] || 'comercial';
+        sesionUsuario = user;
+        _iniciarSesion();
+        return;
+      }
+    }
+  } catch(e){ console.warn('SSO error:', e); }
 });
 </script>
 
