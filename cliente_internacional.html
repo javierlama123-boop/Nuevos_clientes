@@ -263,15 +263,15 @@ input[type=file]{display:none}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, doc, updateDoc, getDocs, query, where
+  getFirestore, collection, addDoc, doc, getDoc, updateDoc, getDocs, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = {
-  apiKey: "AIzaSyA9nrkIVS7o8h8865KoLWcLqeyiCzhLhwA",
-  authDomain: "capacitaciones-29aab.firebaseapp.com",
-  projectId: "capacitaciones-29aab",
-  storageBucket: "capacitaciones-29aab.firebasestorage.app",
-  messagingSenderId: "1013033091630",
-  appId: "1:1013033091630:web:d94384de993c34bb3c55bf"
+  apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
+  authDomain: "clientesnuevos-e915d.firebaseapp.com",
+  projectId: "clientesnuevos-e915d",
+  storageBucket: "clientesnuevos-e915d.firebasestorage.app",
+  messagingSenderId: "366989020508",
+  appId: "1:366989020508:web:686a320c65ba1fc02bc599"
 };
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
@@ -283,7 +283,17 @@ window._doc_ref_i = doc;
 window._getDocs_i = getDocs;
 window._query_i   = query;
 window._where_i   = where;
+window._getDoc_i  = getDoc;
 window._fbInt     = true;
+// Aliases para compatibilidad
+window.FS_getDocs = getDocs;
+window.FS_col     = collection;
+window.FS_query   = query;
+window.FS_where   = where;
+window.FS_add     = addDoc;
+window.FS_update  = updateDoc;
+window.FS_doc     = doc;
+window.DB         = db;
 document.dispatchEvent(new Event('fb-int-ready'));
 </script>
 </head>
@@ -844,16 +854,14 @@ async function validarToken(){
 
   try {
     await fbIntReady();
-    const q    = window._query_i(window._col_i(window._db_int,'invitaciones_clientes'), window._where_i('codigo','==',codigo));
-    const snap = await window._getDocs_i(q);
+    const docSnap = await window._getDoc_i(window._doc_ref_i(window._db_int,'invitaciones_clientes', codigo));
 
-    if(snap.empty){
+    if(!docSnap.exists()){
       err.textContent = 'Code not found. Please check and try again.';
       err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
     }
-    const docSnap = snap.docs[0];
     const t = docSnap.data();
-    tokenDocId = docSnap.id;
+    tokenDocId = codigo;
 
     if(t.estado === 'revocado'){
       err.textContent = 'This code has been revoked. Contact the commercial team.';
