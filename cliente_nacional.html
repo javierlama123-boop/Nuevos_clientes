@@ -1112,8 +1112,8 @@ async function enviarSolicitud(){
     const datos = {
       tipo_formulario:    'nacional',
       estado:             'pendiente',
-      aprobacion_comercial: 'pendiente',
-      aprobacion_legal:     null,
+      aprobacion_legal:    'pendiente',
+      aprobacion_comercial: null,
       creadoEn:           new Date().toISOString(),
       tokenUsado:         tokenValidado?.codigo || null,
       // Paso 1
