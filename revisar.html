@@ -649,16 +649,16 @@ async function acceder(){
   err.style.display = 'none';
   btn.disabled = true; btn.textContent = 'Verificando...';
 
-  try {
-    // 1. Superadmin hardcodeado
-    if(usuario === SUPERADMIN_REV.usuario && pass === SUPERADMIN_REV.password){
-      areaActual   = 'superadmin';
-      sesionUsuario = SUPERADMIN_REV;
-      _iniciarSesion();
-      return;
-    }
+  // Verificar superadmin ANTES de esperar Firebase (no requiere red)
+  if(usuario === SUPERADMIN_REV.usuario && pass === SUPERADMIN_REV.password){
+    areaActual    = 'superadmin';
+    sesionUsuario = SUPERADMIN_REV;
+    _iniciarSesion();
+    return;
+  }
 
-    // 2. Buscar en Firestore
+  try {
+    // Buscar en Firestore
     await fbReady();
     const snap = await window._getDocs(window._col(window._db, 'usuarios_portal'));
 
@@ -691,6 +691,7 @@ async function acceder(){
   } catch(e){
     err.textContent = 'Error: ' + e.message;
     err.style.display = 'block';
+  } finally {
     btn.disabled = false; btn.textContent = 'Ingresar →';
   }
 }
@@ -710,7 +711,7 @@ function cerrarSesion(){
   sesionIniciada = false;
   sesionUsuario  = null;
   solicitudes    = [];
-  sessionStorage.removeItem('mx_sesion');
+  localStorage.removeItem('mx_sesion');
   document.getElementById('gate-wrapper').style.display = 'flex';
   document.getElementById('sidebar').style.display      = 'none';
   document.getElementById('topbar').style.display       = 'none';
@@ -1158,7 +1159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // SSO: intentar login automático desde sesión de admin.html
   try {
-    const stored = sessionStorage.getItem('mx_sesion');
+    const stored = localStorage.getItem('mx_sesion');
     if(stored){
       const user = JSON.parse(stored);
       const rolesPermitidos = ['superadmin','admin','comercial','legal'];
