@@ -292,9 +292,11 @@ document.dispatchEvent(new Event('fb-ready'));
       <div class="view active" id="view-monitor">
         <div class="view-title">📊 Monitor de Solicitudes</div>
         <div class="view-sub">Todas las solicitudes en tiempo real</div>
-        <div class="kpi-grid">
+        <div class="kpi-grid" style="grid-template-columns:repeat(7,1fr)">
           <div class="kpi-card"><div class="kpi-num" id="k-total">—</div><div class="kpi-label">Total</div></div>
           <div class="kpi-card kpi-pendiente"><div class="kpi-num" id="k-pend">—</div><div class="kpi-label">Pendientes</div></div>
+          <div class="kpi-card" style="border-top-color:#f97316"><div class="kpi-num" id="k-pend-com" style="color:#f97316">—</div><div class="kpi-label">⏳ Pend. Comercial</div></div>
+          <div class="kpi-card" style="border-top-color:#2563eb"><div class="kpi-num" id="k-pend-leg" style="color:#2563eb">—</div><div class="kpi-label">⏳ Pend. Legal</div></div>
           <div class="kpi-card kpi-revision"><div class="kpi-num" id="k-rev">—</div><div class="kpi-label">En revisión</div></div>
           <div class="kpi-card kpi-aprobado"><div class="kpi-num" id="k-apro">—</div><div class="kpi-label">Aprobadas</div></div>
           <div class="kpi-card kpi-rechazado"><div class="kpi-num" id="k-rech">—</div><div class="kpi-label">Rechazadas</div></div>
@@ -472,6 +474,9 @@ function iniciarApp(user){
   sesion = user;
   const rol = ROL[user.rol] || ROL.monitor;
 
+  // Guardar sesión para SSO con revisar.html
+  sessionStorage.setItem('mx_sesion', JSON.stringify(user));
+
   document.getElementById('login-gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
 
@@ -495,6 +500,7 @@ function logout(){
   if(unsub) unsub();
   if(unsubTokens) unsubTokens();
   sesion = null; solicitudes = []; solFilt = [];
+  sessionStorage.removeItem('mx_sesion');
   document.getElementById('login-gate').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('inp-usuario').value = '';
@@ -545,14 +551,26 @@ function actualizarKPIs(){
   const it = solicitudes.filter(s=>s.tipo_formulario==='internacional').length;
   const fin = ap + rc;
   const tasa = fin > 0 ? Math.round(ap/fin*100) : 0;
-  document.getElementById('k-total').textContent = t;
-  document.getElementById('k-pend').textContent  = pe;
-  document.getElementById('k-rev').textContent   = re;
-  document.getElementById('k-apro').textContent  = ap;
-  document.getElementById('k-rech').textContent  = rc;
-  document.getElementById('k-tasa').textContent  = tasa+'%';
+
+  // Pendientes por área
+  const pendCom = solicitudes.filter(s =>
+    !s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente'
+  ).length;
+  const pendLeg = solicitudes.filter(s =>
+    s.aprobacion_comercial === 'aprobado' &&
+    (!s.aprobacion_legal || s.aprobacion_legal === 'pendiente')
+  ).length;
+
+  document.getElementById('k-total').textContent    = t;
+  document.getElementById('k-pend').textContent     = pe;
+  document.getElementById('k-pend-com').textContent = pendCom;
+  document.getElementById('k-pend-leg').textContent = pendLeg;
+  document.getElementById('k-rev').textContent      = re;
+  document.getElementById('k-apro').textContent     = ap;
+  document.getElementById('k-rech').textContent     = rc;
+  document.getElementById('k-tasa').textContent     = tasa+'%';
   document.getElementById('k-tasa-bar').style.width = tasa+'%';
-  document.getElementById('k-tipos').textContent = na+' / '+it;
+  document.getElementById('k-tipos').textContent    = na+' / '+it;
   if(solicitudes[0]){
     const d = new Date(solicitudes[0].creadoEn);
     const h = Math.floor((Date.now()-d)/3600000);
