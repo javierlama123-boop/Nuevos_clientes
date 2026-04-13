@@ -3,192 +3,291 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Panel de Administración · Multi-X</title>
+<title>Ficha Cliente Nacional · Multi-X</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#002B4F; --navy-light:#003d6e;
-  --salmon:#E8523A; --salmon-light:#f06b55;
-  --bg:#f4f6f8; --surface:#fff;
-  --border:#dce3ea; --fg:#0d1f2d; --muted:#6b7f8e;
-  --success:#059669; --danger:#dc2626; --warning:#d97706; --info:#2563eb;
-  --sidebar-w:240px;
+  --navy:#002B4F;
+  --navy-dark:#001e38;
+  --navy-light:#003d6e;
+  --salmon:#E8523A;
+  --salmon-light:#f06b55;
+  --bg:#f4f6f8;
+  --surface:#ffffff;
+  --card:#ffffff;
+  --border:#dce3ea;
+  --border-strong:#b0bec9;
+  --fg:#0d1f2d;
+  --muted:#6b7f8e;
+  --muted-light:#97aab6;
+  --success:#1a9e6e;
+  --danger:#d63b2a;
+  --sidebar-w:260px;
 }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh}
 
-/* LOGIN */
-#login-gate{
-  position:fixed;inset:0;background:var(--bg);z-index:999;
-  display:flex;align-items:center;justify-content:center;
+aside{
+  position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+  background:var(--navy);display:flex;flex-direction:column;z-index:50;
 }
-.login-card{background:var(--surface);border-radius:16px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.12)}
-.login-head{background:var(--navy);padding:2rem;text-align:center}
-.login-logo{width:52px;height:52px;border-radius:10px;background:var(--salmon);display:inline-flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:1rem}
-.login-title{font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:700;color:#fff}
-.login-sub{font-size:0.78rem;color:rgba(255,255,255,0.45);margin-top:0.2rem}
-.login-body{padding:1.8rem}
-.lf{margin-bottom:1rem}
-.lf label{display:block;font-size:0.66rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin-bottom:0.35rem}
-.lf input{width:100%;font-family:'Barlow',sans-serif;font-size:0.9rem;padding:0.72rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--fg);outline:none;transition:border-color 0.2s}
-.lf input:focus{border-color:var(--navy);background:#fff}
-#btn-ingresar{width:100%;font-family:'Barlow',sans-serif;font-size:0.92rem;font-weight:600;padding:0.82rem;border-radius:8px;border:none;cursor:pointer;background:var(--navy);color:#fff;transition:background 0.18s;margin-top:0.3rem}
-#btn-ingresar:hover{background:var(--navy-light)}
-#btn-ingresar:disabled{opacity:0.5;cursor:not-allowed}
-#login-err{font-size:0.78rem;color:var(--danger);text-align:center;margin-top:0.7rem;min-height:1.2em}
-.login-back{display:block;text-align:center;margin-top:1rem;font-size:0.78rem;color:var(--muted);text-decoration:none}
-.login-back:hover{color:var(--navy)}
-
-/* LAYOUT APP */
-#app{display:none}
-aside{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--navy);display:flex;flex-direction:column;z-index:50}
-.sb-logo{padding:1.3rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:0.8rem}
-.sb-mark{width:36px;height:36px;border-radius:7px;background:var(--salmon);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:#fff;flex-shrink:0}
-.sb-brand{font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.04em}
-.sb-sub{font-size:0.62rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.08em}
-nav{flex:1;padding:0.7rem 0;overflow-y:auto}
-.nav-sec{font-size:0.58rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0.8rem 1.2rem 0.3rem}
-.nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 1.2rem;font-size:0.84rem;font-weight:500;color:rgba(255,255,255,0.55);border-left:3px solid transparent;transition:all 0.18s;cursor:pointer;text-decoration:none}
+.logo-area{
+  padding:1.6rem 1.4rem 1.4rem;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;gap:0.9rem;
+}
+.logo-svg{flex-shrink:0;width:48px;height:48px}
+.logo-text .brand{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.3rem;font-weight:700;color:#fff;
+  letter-spacing:0.04em;text-transform:uppercase;
+}
+.logo-text .sub{
+  font-size:0.68rem;font-weight:400;
+  color:rgba(255,255,255,0.45);
+  text-transform:uppercase;letter-spacing:0.08em;
+}
+nav{flex:1;padding:1rem 0;overflow-y:auto}
+.nav-section{
+  font-size:0.62rem;font-weight:700;letter-spacing:0.12em;
+  text-transform:uppercase;color:rgba(255,255,255,0.3);
+  padding:1rem 1.4rem 0.4rem;
+}
+.nav-item{
+  display:flex;align-items:center;gap:0.8rem;
+  padding:0.72rem 1.4rem;cursor:pointer;
+  font-size:0.88rem;font-weight:500;
+  color:rgba(255,255,255,0.55);
+  border-left:3px solid transparent;
+  transition:all 0.18s;
+}
 .nav-item:hover{color:rgba(255,255,255,0.9);background:rgba(255,255,255,0.06)}
 .nav-item.active{color:#fff;border-left-color:var(--salmon);background:rgba(232,82,58,0.12)}
-.nav-icon{width:18px;text-align:center;font-size:0.9rem}
-.sb-user{padding:0.9rem 1.2rem;border-top:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:0.7rem}
-.sb-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;color:#fff;flex-shrink:0;background:var(--salmon)}
-.sb-uname{font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.85)}
-.sb-urole{font-size:0.62rem;color:rgba(255,255,255,0.35)}
-.btn-sb{background:none;border:none;color:rgba(255,255,255,0.35);cursor:pointer;font-size:0.85rem;padding:0.2rem;transition:color 0.18s;margin-left:auto}
-.btn-sb:hover{color:var(--salmon)}
-
-.main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
-.topbar-title{font-size:0.95rem;font-weight:600;color:var(--fg)}
-.content{padding:2rem;flex:1}
-
-/* VISTAS */
-.view{display:none}.view.active{display:block;animation:fadeUp 0.2s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-.view-title{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem}
-.view-sub{font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem}
-
-/* BADGES ROL */
-.role-pill{font-size:0.64rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:20px}
-.role-superadmin{background:#f3e8ff;color:#7c3aed}
-.role-admin{background:rgba(0,43,79,0.08);color:var(--navy)}
-.role-comercial{background:rgba(232,82,58,0.1);color:var(--salmon)}
-.role-legal{background:rgba(37,99,235,0.1);color:var(--info)}
-.role-monitor{background:#D1FAE5;color:var(--success)}
-
-/* KPIs */
-.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0.8rem;margin-bottom:1.2rem}
-.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;border-top:3px solid var(--border)}
-.kpi-num{font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:700;color:var(--navy);line-height:1;margin-bottom:0.2rem}
-.kpi-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)}
-.kpi-pendiente{border-top-color:#d97706}.kpi-pendiente .kpi-num{color:#d97706}
-.kpi-revision{border-top-color:#2563eb}.kpi-revision .kpi-num{color:#2563eb}
-.kpi-aprobado{border-top-color:#059669}.kpi-aprobado .kpi-num{color:#059669}
-.kpi-rechazado{border-top-color:#dc2626}.kpi-rechazado .kpi-num{color:#dc2626}
-
-/* FILTROS */
-.filtros{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;display:flex;gap:0.7rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem}
-.fg{display:flex;flex-direction:column;gap:0.3rem;flex:1;min-width:130px}
-.fg label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted)}
-.fg select,.fg input{font-family:'Barlow',sans-serif;font-size:0.82rem;padding:0.5rem 0.75rem;border:1.5px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);outline:none;transition:border-color 0.2s;appearance:none}
-.fg select:focus,.fg input:focus{border-color:var(--navy)}
-
-/* TABLA */
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-table{width:100%;border-collapse:collapse}
-th{background:var(--navy);color:#fff;font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:0.75rem 1rem;text-align:left;white-space:nowrap;cursor:pointer}
-td{padding:0.75rem 1rem;border-bottom:1px solid var(--border);font-size:0.83rem;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(0,43,79,0.025)}
-.badge{display:inline-flex;align-items:center;gap:0.25rem;font-size:0.67rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:20px;white-space:nowrap}
-.b-pendiente{background:#FEF3C7;color:#92400e}
-.b-revision{background:#DBEAFE;color:#1e40af}
-.b-aprobado{background:#D1FAE5;color:#065f46}
-.b-rechazado{background:#FEE2E2;color:#991b1b}
-.b-nac{background:rgba(0,43,79,0.08);color:var(--navy)}
-.b-int{background:rgba(232,82,58,0.1);color:var(--salmon)}
-.empty{text-align:center;padding:3rem;color:var(--muted);font-size:0.85rem}
-.spinner{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(0,43,79,0.12);border-top-color:var(--navy);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* DETALLE */
-#detalle-panel{display:none;margin-top:1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.5rem}
-.dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 2rem}
-.dp-row{display:flex;flex-direction:column;padding:0.3rem 0;border-bottom:1px solid var(--border)}
-.dp-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)}
-.dp-val{font-size:0.84rem;color:var(--fg)}
-
-/* TOKENS */
-.token-form-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
-.token-form-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--navy);margin-bottom:0.9rem}
-.tf-row{display:flex;gap:0.8rem;flex-wrap:wrap;align-items:flex-end}
-.tf-g{display:flex;flex-direction:column;gap:0.3rem;flex:1;min-width:150px}
-.tf-g label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted)}
-.tf-g input,.tf-g select{font-family:'Barlow',sans-serif;font-size:0.85rem;padding:0.55rem 0.8rem;border:1.5px solid var(--border);border-radius:7px;background:var(--bg);color:var(--fg);outline:none;transition:border-color 0.2s}
-.tf-g input:focus,.tf-g select:focus{border-color:var(--navy)}
-.btn-gen{font-family:'Barlow',sans-serif;font-size:0.85rem;font-weight:600;padding:0.58rem 1.3rem;border-radius:7px;border:none;cursor:pointer;background:var(--navy);color:#fff;transition:background 0.18s;white-space:nowrap}
-.btn-gen:hover{background:var(--navy-light)}
-.token-result{background:#D1FAE5;border:1px solid #6ee7b7;border-radius:10px;padding:1.1rem;margin-bottom:1rem;display:none}
-.t-code{font-family:'Courier New',monospace;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;color:var(--navy);background:rgba(0,43,79,0.06);padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer}
-.t-code:hover{background:rgba(0,43,79,0.12)}
-.badge-activo{background:#D1FAE5;color:#065f46;font-size:0.65rem;font-weight:700;padding:0.18rem 0.5rem;border-radius:20px}
-.badge-usado{background:#F3F4F6;color:#374151;font-size:0.65rem;font-weight:700;padding:0.18rem 0.5rem;border-radius:20px}
-.badge-expirado{background:#FEF3C7;color:#92400e;font-size:0.65rem;font-weight:700;padding:0.18rem 0.5rem;border-radius:20px}
-.badge-revocado{background:#FEE2E2;color:#991b1b;font-size:0.65rem;font-weight:700;padding:0.18rem 0.5rem;border-radius:20px}
-.btn-sm{font-family:'Barlow',sans-serif;font-size:0.73rem;font-weight:600;padding:0.25rem 0.65rem;border-radius:5px;border:none;cursor:pointer;transition:all 0.18s}
-.btn-copy{background:rgba(0,43,79,0.08);color:var(--navy)}.btn-copy:hover{background:rgba(0,43,79,0.15)}
-.btn-rev{background:rgba(220,38,38,0.08);color:#991b1b}.btn-rev:hover{background:rgba(220,38,38,0.18)}
-
-/* USUARIOS */
-.user-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0.9rem 1.1rem;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.9rem}
-.u-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;color:#fff;flex-shrink:0}
-.u-name{font-size:0.87rem;font-weight:600;color:var(--fg)}
-.u-user{font-size:0.74rem;color:var(--muted)}
-.btn-icon{background:none;border:1px solid var(--border);border-radius:5px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.78rem;transition:all 0.18s;color:var(--muted)}
-.btn-icon:hover{border-color:var(--danger);color:var(--danger);background:#FEE2E2}
-.nu-form{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
-.nu-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--navy);margin-bottom:0.9rem}
-.nu-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.7rem}
-.nu-grid label,.nu-full label{display:block;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.3rem}
-.nu-grid input,.nu-grid select,.nu-full input,.nu-full select{width:100%;font-family:'Barlow',sans-serif;font-size:0.85rem;padding:0.55rem 0.8rem;background:var(--surface);border:1.5px solid var(--border);border-radius:7px;color:var(--fg);outline:none;transition:border-color 0.2s}
-.nu-grid input:focus,.nu-grid select:focus,.nu-full input:focus{border-color:var(--navy)}
-.btn-crear{width:100%;font-family:'Barlow',sans-serif;font-size:0.85rem;font-weight:600;padding:0.65rem;border-radius:7px;border:none;cursor:pointer;background:var(--navy);color:#fff;transition:background 0.18s;margin-top:0.3rem}
-.btn-crear:hover{background:var(--navy-light)}
-
-/* BTNS GENERALES */
-.btn{font-family:'Barlow',sans-serif;font-size:0.83rem;font-weight:600;padding:0.55rem 1.1rem;border-radius:7px;border:none;cursor:pointer;transition:all 0.18s}
-.btn-navy{background:var(--navy);color:#fff}.btn-navy:hover{background:var(--navy-light)}
-.btn-outline{background:transparent;color:var(--muted);border:1.5px solid var(--border)}.btn-outline:hover{border-color:var(--navy);color:var(--navy)}
-.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{opacity:0.85}
-
-/* PROGRESS BAR */
-.pb-wrap{background:#e5e7eb;border-radius:20px;height:5px;overflow:hidden;width:80px;display:inline-block;vertical-align:middle}
-.pb-fill{height:100%;border-radius:20px;background:var(--navy)}
-
-/* TOAST */
-.toast{position:fixed;bottom:1.5rem;right:1.5rem;font-family:'Barlow',sans-serif;font-size:0.84rem;font-weight:600;padding:0.75rem 1.2rem;border-radius:9px;transform:translateY(20px);opacity:0;pointer-events:none;transition:all 0.3s;z-index:9999;max-width:360px}
-.toast.show{transform:translateY(0);opacity:1}
-.toast.ok{background:#D1FAE5;color:#065f46;border:1px solid #6ee7b7}
-.toast.err{background:#FEE2E2;color:#991b1b;border:1px solid #fca5a5}
-.toast.info{background:#DBEAFE;color:#1e40af;border:1px solid #93c5fd}
-
-@media(max-width:768px){
-  aside{transform:translateX(-100%)}
-  .main{margin-left:0}
-  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+.nav-icon{font-size:1rem;width:20px;text-align:center;opacity:0.9}
+.sidebar-footer{
+  padding:1.1rem 1.4rem;
+  border-top:1px solid rgba(255,255,255,0.1);
+  font-size:0.7rem;color:rgba(255,255,255,0.35);line-height:1.8;
 }
+
+main{margin-left:var(--sidebar-w);min-height:100vh}
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 2.5rem;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:40;
+}
+.topbar-left{display:flex;align-items:center;gap:0.6rem}
+.topbar-breadcrumb{font-size:0.8rem;color:var(--muted)}
+.topbar-title{font-size:0.95rem;font-weight:600;color:var(--fg)}
+.badge-nacional{
+  font-size:0.65rem;font-weight:700;letter-spacing:0.06em;
+  background:rgba(0,43,79,0.1);color:var(--navy);
+  padding:0.18rem 0.6rem;border-radius:20px;text-transform:uppercase;
+}
+
+.content{padding:2.5rem}
+.page-header{margin-bottom:2rem;display:flex;justify-content:space-between;align-items:flex-start}
+.page-header h2{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:2rem;font-weight:700;color:var(--navy);letter-spacing:0.01em;
+}
+.page-header p{font-size:0.82rem;color:var(--muted);margin-top:0.25rem}
+.back-link{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  font-size:0.82rem;font-weight:600;color:var(--muted);
+  text-decoration:none;transition:color 0.18s;
+}
+.back-link:hover{color:var(--navy)}
+
+.progress-bar{
+  display:flex;gap:0;margin-bottom:2rem;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+}
+.step{
+  flex:1;padding:1rem 1.2rem;
+  font-size:0.75rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.07em;
+  color:var(--muted-light);border-right:1px solid var(--border);
+  display:flex;align-items:center;gap:0.5rem;cursor:pointer;
+  transition:background 0.2s;
+}
+.step:last-child{border-right:none}
+.step.active{background:var(--navy);color:#fff}
+.step.done{background:rgba(26,158,110,0.08);color:var(--success)}
+.step-num{
+  width:22px;height:22px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:0.7rem;background:rgba(255,255,255,0.15);
+}
+.step.active .step-num{background:rgba(255,255,255,0.2)}
+.step.done .step-num{background:var(--success);color:#fff}
+
+.section{display:none}
+.section.active{display:block;animation:fadeUp 0.25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:1.8rem;margin-bottom:1.2rem;
+}
+.section-label{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1rem;font-weight:700;color:var(--navy);
+  letter-spacing:0.02em;margin-bottom:1.4rem;
+  padding-bottom:0.7rem;border-bottom:2px solid var(--navy);
+  display:flex;align-items:center;gap:0.5rem;
+}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1rem}
+.fg-full{grid-column:1/-1}
+.fg-third{grid-column:span 1}
+.form-group{display:flex;flex-direction:column;gap:0.4rem}
+label{
+  font-size:0.7rem;font-weight:700;
+  letter-spacing:0.09em;text-transform:uppercase;color:var(--muted);
+}
+label .req{color:var(--salmon);margin-left:2px}
+input,textarea,select{
+  font-family:'Barlow',sans-serif;font-size:0.9rem;
+  padding:0.7rem 1rem;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:7px;color:var(--fg);outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  appearance:none;-webkit-appearance:none;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--navy);
+  box-shadow:0 0 0 3px rgba(0,43,79,0.1);background:#fff;
+}
+input.error,select.error{border-color:var(--danger)}
+textarea{resize:vertical;min-height:72px}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7f8e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center;
+  padding-right:2.5rem;cursor:pointer;
+}
+.form-hint{font-size:0.72rem;color:var(--muted-light);margin-top:0.25rem}
+.error-msg{font-size:0.72rem;color:var(--danger);margin-top:0.25rem;display:none}
+
+.radio-group{display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.3rem}
+.radio-opt{
+  display:flex;align-items:center;gap:0.5rem;
+  font-size:0.88rem;cursor:pointer;padding:0.6rem 1rem;
+  border:1.5px solid var(--border);border-radius:7px;
+  transition:all 0.18s;
+}
+.radio-opt input[type=radio]{width:auto;padding:0;background:none;border:none;box-shadow:none}
+.radio-opt:has(input:checked){border-color:var(--navy);background:rgba(0,43,79,0.05);color:var(--navy);font-weight:600}
+
+.yesno-group{display:flex;gap:0.8rem;margin-top:0.3rem}
+.yesno-btn{
+  flex:1;padding:0.7rem;text-align:center;
+  border:1.5px solid var(--border);border-radius:7px;
+  cursor:pointer;font-size:0.88rem;font-weight:600;
+  transition:all 0.18s;
+}
+.yesno-btn:hover{border-color:var(--navy-light)}
+.yesno-btn.selected-yes{border-color:var(--success);background:rgba(26,158,110,0.08);color:var(--success)}
+.yesno-btn.selected-no{border-color:var(--danger);background:rgba(214,59,42,0.08);color:var(--danger)}
+
+.sub-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;padding:1.2rem;margin-top:0.5rem;
+}
+.sub-title{font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:0.9rem}
+
+.doc-card{
+  background:var(--card);border:2px dashed var(--border);
+  border-radius:10px;padding:1.8rem;margin-bottom:1.2rem;
+  text-align:center;
+}
+.doc-card.has-file{border-style:solid;border-color:var(--success)}
+.doc-icon{font-size:2rem;margin-bottom:0.5rem}
+.doc-title{font-size:0.88rem;font-weight:600;color:var(--fg);margin-bottom:0.3rem}
+.doc-desc{font-size:0.78rem;color:var(--muted);margin-bottom:1rem;line-height:1.5}
+.file-input-label{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  font-size:0.83rem;font-weight:600;color:var(--navy);
+  border:1.5px solid var(--navy);border-radius:7px;
+  padding:0.55rem 1.2rem;cursor:pointer;transition:all 0.18s;
+}
+.file-input-label:hover{background:var(--navy);color:#fff}
+input[type=file]{display:none}
+.file-name{font-size:0.78rem;color:var(--success);margin-top:0.5rem;font-weight:600}
+
+.download-btn{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  font-size:0.83rem;font-weight:600;color:var(--salmon);
+  border:1.5px solid var(--salmon);border-radius:7px;
+  padding:0.55rem 1.2rem;cursor:pointer;transition:all 0.18s;
+  text-decoration:none;margin-bottom:1rem;
+}
+.download-btn:hover{background:var(--salmon);color:#fff}
+
+.btn{
+  font-family:'Barlow',sans-serif;font-size:0.88rem;font-weight:600;
+  padding:0.75rem 2rem;border-radius:7px;border:none;cursor:pointer;transition:all 0.18s;
+}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{background:var(--navy-light);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,43,79,0.25)}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--navy)}
+.btn-outline:hover{background:var(--navy);color:#fff}
+.btn-salmon{background:var(--salmon);color:#fff}
+.btn-salmon:hover{background:var(--salmon-light)}
+.btn-disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+
+.nav-actions{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);
+}
+
+.info-box{
+  background:rgba(0,43,79,0.04);border:1px solid rgba(0,43,79,0.12);
+  border-radius:8px;padding:1rem 1.2rem;
+  font-size:0.83rem;color:var(--muted);line-height:1.7;
+  margin-bottom:1rem;
+}
+.info-box strong{color:var(--navy)}
+
+.toast{
+  position:fixed;bottom:2rem;right:2rem;
+  background:var(--navy);border-radius:8px;
+  padding:0.9rem 1.4rem;font-size:0.85rem;color:#fff;
+  box-shadow:0 8px 32px rgba(0,0,0,0.2);z-index:999;
+  transform:translateY(20px);opacity:0;
+  transition:all 0.3s;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{background:var(--success)}
+.toast.err{background:var(--danger)}
+
+.success-screen{
+  text-align:center;padding:4rem 2rem;
+  display:none;
+}
+.success-screen.show{display:block;animation:fadeUp 0.3s ease}
+.success-icon{font-size:4rem;margin-bottom:1rem}
+.success-screen h2{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:2rem;font-weight:700;color:var(--success);margin-bottom:0.5rem;
+}
+.success-screen p{font-size:0.9rem;color:var(--muted);max-width:500px;margin:0 auto;line-height:1.6}
+
+@media(max-width:700px){aside{display:none}main{margin-left:0}.form-grid{grid-template-columns:1fr}}
 </style>
 
-<!-- API Azure + Firebase para tokens -->
+<meta name="pa-webhook" content="__PA_WEBHOOK__"/>
+
+<!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, collection, query, orderBy, onSnapshot,
-  doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc
+  getFirestore, collection, addDoc, doc, getDoc, updateDoc, getDocs, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const cfg = {
+const firebaseConfig = {
   apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
   authDomain: "clientesnuevos-e915d.firebaseapp.com",
   projectId: "clientesnuevos-e915d",
@@ -196,759 +295,911 @@ const cfg = {
   messagingSenderId: "366989020508",
   appId: "1:366989020508:web:686a320c65ba1fc02bc599"
 };
-const app = initializeApp(cfg);
+const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
-window.DB         = db;
-window.FS_col     = collection;
-window.FS_query   = query;
-window.FS_orderBy = orderBy;
-window.FS_snap    = onSnapshot;
-window.FS_doc     = doc;
-window.FS_getDoc  = getDoc;
-window.FS_getDocs = getDocs;
-window.FS_add     = addDoc;
-window.FS_update  = updateDoc;
-window.FS_delete  = deleteDoc;
-window.FS_setDoc  = setDoc;
-window.FB_READY   = true;
-document.dispatchEvent(new Event('fb-ready'));
-</script>
-<script>
-const API = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
-let jwtToken = null;
-
-async function apiFetch(path, opts={}) {
-  const headers = { 'Content-Type': 'application/json', ...opts.headers };
-  if(jwtToken) headers['Authorization'] = 'Bearer ' + jwtToken;
-  const res = await fetch(API + path, { ...opts, headers });
-  if(!res.ok) {
-    const err = await res.json().catch(()=>({}));
-    throw new Error(err.detail || 'Error ' + res.status);
-  }
-  return res.json();
-}
+window._db_nac    = db;
+window._addDoc    = addDoc;
+window._updateDoc = updateDoc;
+window._col       = collection;
+window._doc_ref   = doc;
+window._getDocs   = getDocs;
+window._query     = query;
+window._where     = where;
+window._getDoc_nac = getDoc;
+window._fbNac     = true;
+document.dispatchEvent(new Event('fb-nac-ready'));
 </script>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-gate">
-  <div class="login-card">
-    <div class="login-head">
-      <div class="login-logo">MX</div>
-      <div class="login-title">Panel de Administración</div>
-      <div class="login-sub">Multi-X S.A. · Solo acceso autorizado</div>
-    </div>
-    <div class="login-body">
-      <div class="lf"><label>Usuario</label>
-        <input type="text" id="inp-usuario" placeholder="usuario" autocomplete="username"
-          onkeydown="if(event.key==='Enter') document.getElementById('inp-pass').focus()"/>
-      </div>
-      <div class="lf"><label>Contraseña</label>
-        <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"
-          onkeydown="if(event.key==='Enter') login()"/>
-      </div>
-      <button id="btn-ingresar" onclick="login()">Ingresar →</button>
-      <div id="login-err"></div>
-      <a class="login-back" href="index.html">← Volver al portal público</a>
+<aside>
+  <div class="logo-area">
+    <svg class="logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="8" fill="#E8523A"/>
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="20"
+        fill="white" letter-spacing="1">MX</text>
+    </svg>
+    <div class="logo-text">
+      <div class="brand">Multi-X</div>
+      <div class="sub">Portal de Clientes</div>
     </div>
   </div>
-</div>
+  <nav>
+    <div class="nav-section">Formulario</div>
+    <div class="nav-item active" id="nav-s1" onclick="goStep(1)"><span class="nav-icon">🏢</span> Datos Generales</div>
+    <div class="nav-item" id="nav-s2" onclick="goStep(2)"><span class="nav-icon">👤</span> Representante Legal</div>
+    <div class="nav-item" id="nav-s3" onclick="goStep(3)"><span class="nav-icon">📞</span> Contacto</div>
+    <div class="nav-item" id="nav-s4" onclick="goStep(4)"><span class="nav-icon">⚖️</span> Modelo Prevención</div>
+    <div class="nav-item" id="nav-s5" onclick="goStep(5)"><span class="nav-icon">📎</span> Documentación</div>
+  </nav>
+  <div class="sidebar-footer">
+    Cliente Nacional · Ficha de Registro<br/>
+    Todos los campos son obligatorios
+  </div>
+</aside>
 
-<!-- APP -->
-<div id="app">
-  <aside>
-    <div class="sb-logo">
-      <div class="sb-mark">MX</div>
-      <div><div class="sb-brand">Multi-X</div><div class="sb-sub">Admin</div></div>
+<main>
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="back-link" style="text-decoration:none;color:var(--muted);font-size:0.8rem;font-weight:500">← Volver</a>
+      <span style="color:var(--border-strong)">›</span>
+      <span class="topbar-title">Ficha Cliente Nacional</span>
     </div>
-    <nav>
-      <div class="nav-sec">Panel</div>
-      <div class="nav-item active" id="nav-monitor" onclick="irA('monitor')">
-        <span class="nav-icon">📊</span> Monitor
-      </div>
-      <div class="nav-item" id="nav-tokens" onclick="irA('tokens')">
-        <span class="nav-icon">🔑</span> Links de Acceso
-      </div>
-      <div class="nav-sec" id="nav-sec-config" style="display:none">Configuración</div>
-      <div class="nav-item" id="nav-usuarios" onclick="irA('usuarios')" style="display:none">
-        <span class="nav-icon">👥</span> Usuarios
-      </div>
-      <div class="nav-sec">Accesos</div>
-      <a class="nav-item" href="revisar.html" target="_blank">
-        <span class="nav-icon">📋</span> Panel de Revisión
-      </a>
-      <a class="nav-item" href="index.html">
-        <span class="nav-icon">🏠</span> Portal Público
-      </a>
-    </nav>
-    <div class="sb-user">
-      <div class="sb-avatar" id="sb-avatar">?</div>
-      <div style="flex:1;min-width:0">
-        <div class="sb-uname" id="sb-nombre">—</div>
-        <div class="sb-urole" id="sb-rol">—</div>
-      </div>
-      <button class="btn-sb" onclick="logout()" title="Cerrar sesión">↩</button>
-    </div>
-  </aside>
+    <span class="badge-nacional">🇨🇱 Nacional</span>
+  </div>
 
-  <div class="main">
-    <div class="topbar">
-      <span class="topbar-title" id="topbar-titulo">Monitor de Solicitudes</span>
-      <div style="display:flex;align-items:center;gap:0.7rem">
-        <span style="font-size:0.72rem;font-weight:700;color:var(--success);background:#D1FAE5;padding:0.2rem 0.65rem;border-radius:20px;text-transform:uppercase;letter-spacing:0.06em">● En vivo</span>
-        <button class="btn btn-outline" style="font-size:0.78rem;padding:0.38rem 0.85rem" onclick="exportCSV()">⬇ CSV</button>
+  <div class="content">
+
+    <!-- TOKEN GATE: se muestra si el acceso requiere token -->
+    <div id="token-gate" style="display:none;min-height:60vh;display:flex;align-items:center;justify-content:center">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;max-width:440px;width:100%;text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:0.8rem">🔑</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;color:var(--navy);margin-bottom:0.4rem">Acceso Requerido</div>
+        <p style="font-size:0.84rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.5">
+          Para acceder a este formulario necesitas un código de acceso proporcionado por el equipo comercial de Multi-X.
+        </p>
+        <input type="text" id="token-input"
+          placeholder="Ej: ABCD-1234"
+          style="width:100%;font-family:'Barlow',sans-serif;font-size:1rem;text-align:center;letter-spacing:0.12em;text-transform:uppercase;padding:0.8rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--fg);outline:none;margin-bottom:0.8rem;transition:border-color 0.2s"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter') validarToken()"/>
+        <button onclick="validarToken()" id="btn-validar-token"
+          style="width:100%;font-family:'Barlow',sans-serif;font-size:0.9rem;font-weight:600;padding:0.8rem;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer;transition:background 0.18s">
+          Verificar acceso →
+        </button>
+        <div id="token-err" style="font-size:0.79rem;color:#991b1b;margin-top:0.7rem;display:none"></div>
+        <p style="font-size:0.74rem;color:var(--muted);margin-top:1rem;line-height:1.4">
+          ¿No tienes un código? Contacta al equipo comercial de Multi-X para solicitar uno.
+        </p>
       </div>
     </div>
 
-    <div class="content">
+    <!-- PROGRESS -->
+    <div class="progress-bar" id="progress-bar">
+      <div class="step active" id="ps1" onclick="goStep(1)"><span class="step-num">1</span> Datos Generales</div>
+      <div class="step" id="ps2" onclick="goStep(2)"><span class="step-num">2</span> Representante</div>
+      <div class="step" id="ps3" onclick="goStep(3)"><span class="step-num">3</span> Contacto</div>
+      <div class="step" id="ps4" onclick="goStep(4)"><span class="step-num">4</span> Prevención</div>
+      <div class="step" id="ps5" onclick="goStep(5)"><span class="step-num">5</span> Documentos</div>
+    </div>
 
-      <!-- MONITOR -->
-      <div class="view active" id="view-monitor">
-        <div class="view-title">📊 Monitor de Solicitudes</div>
-        <div class="view-sub">Todas las solicitudes en tiempo real</div>
-        <div class="kpi-grid" style="grid-template-columns:repeat(7,1fr)">
-          <div class="kpi-card"><div class="kpi-num" id="k-total">—</div><div class="kpi-label">Total</div></div>
-          <div class="kpi-card kpi-pendiente"><div class="kpi-num" id="k-pend">—</div><div class="kpi-label">Pendientes</div></div>
-          <div class="kpi-card" style="border-top-color:#2563eb"><div class="kpi-num" id="k-pend-leg" style="color:#2563eb">—</div><div class="kpi-label">⏳ Pend. Legal</div></div>
-          <div class="kpi-card" style="border-top-color:#f97316"><div class="kpi-num" id="k-pend-com" style="color:#f97316">—</div><div class="kpi-label">⏳ Pend. Comercial</div></div>
-          <div class="kpi-card kpi-revision"><div class="kpi-num" id="k-rev">—</div><div class="kpi-label">En revisión</div></div>
-          <div class="kpi-card kpi-aprobado"><div class="kpi-num" id="k-apro">—</div><div class="kpi-label">Aprobadas</div></div>
-          <div class="kpi-card kpi-rechazado"><div class="kpi-num" id="k-rech">—</div><div class="kpi-label">Rechazadas</div></div>
+    <!-- FORMULARIO PRINCIPAL -->
+    <div id="form-wrapper">
+
+      <!-- SECCIÓN 1: DATOS GENERALES -->
+      <div class="section active" id="sec1">
+        <div class="page-header">
+          <div>
+            <h2>I. Datos Generales</h2>
+            <p>Información básica del cliente o empresa</p>
+          </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.8rem;margin-bottom:1.2rem">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem">
-            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:0.3rem">Tasa de aprobación</div>
-            <div style="display:flex;align-items:center;gap:0.8rem">
-              <div id="k-tasa" style="font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:700;color:var(--navy)">—%</div>
-              <div class="pb-wrap"><div id="k-tasa-bar" class="pb-fill" style="width:0%"></div></div>
+
+        <div class="card">
+          <div class="section-label">📋 Identificación</div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Fecha <span class="req">*</span></label>
+              <input type="date" id="fecha" />
+            </div>
+            <div class="form-group">
+              <label>Tipo de empresa <span class="req">*</span></label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="tipo_empresa" value="Chilena" onchange="syncTipoEmpresa(this)"> Chilena</label>
+                <label class="radio-opt"><input type="radio" name="tipo_empresa" value="Internacional" onchange="syncTipoEmpresa(this)"> Internacional</label>
+              </div>
             </div>
           </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem">
-            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:0.3rem">Nac / Int</div>
-            <div id="k-tipos" style="font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:700;color:var(--navy)">— / —</div>
+
+          <div class="form-grid" style="margin-top:0.5rem">
+            <div class="form-group">
+              <label>Tipo de persona <span class="req">*</span></label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="tipo_persona" value="Natural" onchange="togglePersona(this)"> Persona Natural</label>
+                <label class="radio-opt"><input type="radio" name="tipo_persona" value="Juridica" onchange="togglePersona(this)"> Persona Jurídica</label>
+              </div>
+            </div>
+            <div class="form-group" id="rut-field">
+              <label id="rut-label">Número de Cédula / RUT <span class="req">*</span></label>
+              <input type="text" id="rut" placeholder="Ej: 12.345.678-9" />
+            </div>
           </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem">
-            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:0.3rem">Última solicitud</div>
-            <div id="k-ultima" style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);line-height:1.3">—</div>
+
+          <div class="form-grid" style="margin-top:0.5rem">
+            <div class="form-group fg-full">
+              <label>Nombre de Cliente / Razón Social <span class="req">*</span></label>
+              <input type="text" id="razon_social" placeholder="Nombre completo o razón social" />
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top:0.5rem">
+            <div class="form-group">
+              <label>País <span class="req">*</span></label>
+              <input type="text" id="pais" value="Chile" />
+            </div>
+            <div class="form-group">
+              <label>Región <span class="req">*</span></label>
+              <select id="region">
+                <option value="">— Selecciona —</option>
+                <option>Arica y Parinacota</option>
+                <option>Tarapacá</option>
+                <option>Antofagasta</option>
+                <option>Atacama</option>
+                <option>Coquimbo</option>
+                <option>Valparaíso</option>
+                <option>Metropolitana de Santiago</option>
+                <option>O'Higgins</option>
+                <option>Maule</option>
+                <option>Ñuble</option>
+                <option>Biobío</option>
+                <option>La Araucanía</option>
+                <option>Los Ríos</option>
+                <option>Los Lagos</option>
+                <option>Aysén</option>
+                <option>Magallanes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Ciudad <span class="req">*</span></label>
+              <input type="text" id="ciudad" placeholder="Ciudad" />
+            </div>
+            <div class="form-group">
+              <label>Dirección <span class="req">*</span></label>
+              <input type="text" id="direccion" placeholder="Calle, número, comuna" />
+            </div>
+            <div class="form-group">
+              <label>Celular <span class="req">*</span></label>
+              <input type="tel" id="celular" placeholder="+56 9 XXXX XXXX" />
+            </div>
+            <div class="form-group">
+              <label>Teléfono Fijo</label>
+              <input type="tel" id="telefono" placeholder="+56 2 XXXX XXXX" />
+            </div>
+            <div class="form-group">
+              <label>Email de contacto <span class="req">*</span></label>
+              <input type="email" id="email_solicitante" placeholder="contacto@empresa.cl" />
+            </div>
           </div>
         </div>
-        <div class="filtros">
-          <div class="fg"><label>Estado</label>
-            <select id="f-estado" onchange="filtrar()">
-              <option value="">Todos</option><option value="pendiente">Pendiente</option>
-              <option value="en_revision">En revisión</option><option value="aprobado">Aprobado</option>
-              <option value="rechazado">Rechazado</option>
-            </select></div>
-          <div class="fg"><label>Tipo</label>
-            <select id="f-tipo" onchange="filtrar()">
-              <option value="">Todos</option><option value="nacional">🇨🇱 Nacional</option>
-              <option value="internacional">🌐 Internacional</option>
-            </select></div>
-          <div class="fg" style="flex:2"><label>Buscar razón social / RUT</label>
-            <input type="text" id="f-buscar" placeholder="Escribe para filtrar..." oninput="filtrar()"/></div>
-          <div class="fg"><label>Desde</label><input type="date" id="f-desde" onchange="filtrar()" style="background-image:none"/></div>
-          <div class="fg"><label>Hasta</label><input type="date" id="f-hasta" onchange="filtrar()" style="background-image:none"/></div>
-          <button class="btn btn-outline" style="font-size:0.8rem;padding:0.48rem 0.9rem" onclick="limpiarFiltros()">Limpiar</button>
+
+        <div class="nav-actions">
+          <span style="font-size:0.78rem;color:var(--muted)">Paso 1 de 5</span>
+          <button class="btn btn-primary" onclick="nextStep(1)">Siguiente →</button>
         </div>
-        <div id="monitor-count" style="font-size:0.78rem;color:var(--muted);margin-bottom:0.7rem"></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr>
-              <th onclick="sortBy('creadoEn')">Fecha ↕</th>
-              <th onclick="sortBy('razon_social')">Razón Social ↕</th>
-              <th>RUT / Tax ID</th><th>Tipo</th>
-              <th onclick="sortBy('estado')">Estado ↕</th>
-              <th>Legal</th><th>Comercial</th><th>Email</th><th>ID</th>
-            </tr></thead>
-            <tbody id="monitor-tbody">
-              <tr><td colspan="9" class="empty"><span class="spinner"></span>Cargando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="detalle-panel"></div>
       </div>
 
-      <!-- TOKENS -->
-      <div class="view" id="view-tokens">
-        <div class="view-title">🔑 Links de Acceso para Clientes</div>
-        <div class="view-sub">Genera códigos temporales para que los clientes accedan al formulario</div>
-        <div class="token-form-box">
-          <div class="token-form-title">Crear nuevo acceso temporal</div>
-          <div class="tf-row">
-            <div class="tf-g"><label>Tipo formulario</label>
-              <select id="tf-tipo"><option value="nacional">🇨🇱 Nacional</option><option value="internacional">🌐 Internacional</option></select></div>
-            <div class="tf-g"><label>Empresa (opcional)</label>
-              <input type="text" id="tf-empresa" placeholder="Pesquera Los Andes SpA"/></div>
-            <div class="tf-g"><label>Email cliente (opcional)</label>
-              <input type="email" id="tf-email" placeholder="contacto@empresa.cl"/></div>
-            <div class="tf-g" style="max-width:130px"><label>Vigencia</label>
-              <select id="tf-horas"><option value="24">24 h</option><option value="48" selected>48 h</option><option value="72">72 h</option><option value="168">7 días</option></select></div>
-            <button class="btn-gen" onclick="generarToken()">🔗 Generar</button>
+      <!-- SECCIÓN 2: REPRESENTANTE LEGAL -->
+      <div class="section" id="sec2">
+        <div class="page-header">
+          <div>
+            <h2>II. Representante Legal y Socios</h2>
+            <p>Datos de los representantes legales y socios de la empresa</p>
           </div>
         </div>
-        <div class="token-result" id="token-result">
-          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#065f46;margin-bottom:0.5rem">✅ Link generado — copia y envía al cliente</div>
-          <div id="token-result-link" style="font-family:'Courier New',monospace;font-size:0.83rem;word-break:break-all;color:#065f46;margin-bottom:0.7rem"></div>
-          <button class="btn-gen" style="font-size:0.78rem;padding:0.38rem 1rem" onclick="copiarLink()">📋 Copiar link</button>
+
+        <div class="card">
+          <div class="section-label">👤 Representante Legal N°1</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre completo <span class="req">*</span></label>
+              <input type="text" id="rl1_nombre" placeholder="Nombre completo" />
+            </div>
+            <div class="form-group">
+              <label>RUT <span class="req">*</span></label>
+              <input type="text" id="rl1_rut" placeholder="12.345.678-9" />
+            </div>
+            <div class="form-group fg-full">
+              <label>Cargo <span class="req">*</span></label>
+              <input type="text" id="rl1_cargo" placeholder="Ej: Gerente General" />
+            </div>
+          </div>
         </div>
-        <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.6rem">Links generados</div>
-        <div class="table-wrap" style="overflow-x:auto">
-          <table>
-            <thead><tr><th>Clave</th><th>Tipo</th><th>Empresa</th><th>Creado</th><th>Expira</th><th>Estado</th><th>Acciones</th></tr></thead>
-            <tbody id="token-tbody"><tr><td colspan="7" class="empty"><span class="spinner"></span>Cargando...</td></tr></tbody>
-          </table>
+
+        <div class="card">
+          <div class="section-label">👤 Representante Legal N°2 <span style="font-size:0.75rem;color:var(--muted);font-weight:400">(si aplica)</span></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre completo</label>
+              <input type="text" id="rl2_nombre" placeholder="Nombre completo" />
+            </div>
+            <div class="form-group">
+              <label>RUT</label>
+              <input type="text" id="rl2_rut" placeholder="12.345.678-9" />
+            </div>
+            <div class="form-group fg-full">
+              <label>Cargo</label>
+              <input type="text" id="rl2_cargo" placeholder="Ej: Director" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">🤝 Socios <span style="font-size:0.75rem;color:var(--muted);font-weight:400">(si aplica)</span></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Socio N°1 - Nombre</label>
+              <input type="text" id="s1_nombre" placeholder="Nombre completo" />
+            </div>
+            <div class="form-group">
+              <label>Socio N°1 - RUT</label>
+              <input type="text" id="s1_rut" placeholder="12.345.678-9" />
+            </div>
+            <div class="form-group">
+              <label>Socio N°2 - Nombre</label>
+              <input type="text" id="s2_nombre" placeholder="Nombre completo" />
+            </div>
+            <div class="form-group">
+              <label>Socio N°2 - RUT</label>
+              <input type="text" id="s2_rut" placeholder="12.345.678-9" />
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button class="btn btn-outline" onclick="prevStep(2)">← Anterior</button>
+          <button class="btn btn-primary" onclick="nextStep(2)">Siguiente →</button>
         </div>
       </div>
 
-      <!-- USUARIOS -->
-      <div class="view" id="view-usuarios">
-        <div class="view-title">👥 Gestión de Usuarios</div>
-        <div class="view-sub">Administra los usuarios del panel</div>
-        <div id="usuarios-body"><div class="empty"><span class="spinner"></span>Cargando...</div></div>
+      <!-- SECCIÓN 3: CONTACTO -->
+      <div class="section" id="sec3">
+        <div class="page-header">
+          <div>
+            <h2>III. Contacto Cuentas por Cobrar y Comercial</h2>
+            <p>Personas de contacto para gestión comercial y cobranza</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">💰 Contacto Cobranza</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Persona de Contacto <span class="req">*</span></label>
+              <input type="text" id="cob_nombre" placeholder="Nombre completo" />
+            </div>
+            <div class="form-group">
+              <label>Cargo <span class="req">*</span></label>
+              <input type="text" id="cob_cargo" placeholder="Ej: Jefe de Finanzas" />
+            </div>
+            <div class="form-group">
+              <label>Email <span class="req">*</span></label>
+              <input type="email" id="cob_email" placeholder="correo@empresa.cl" />
+            </div>
+            <div class="form-group">
+              <label>Celular <span class="req">*</span></label>
+              <input type="tel" id="cob_celular" placeholder="+56 9 XXXX XXXX" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">💼 Contacto Comercial</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Persona de Contacto <span class="req">*</span></label>
+              <input type="text" id="com_nombre" placeholder="Nombre completo" />
+            </div>
+            <div class="form-group">
+              <label>Cargo <span class="req">*</span></label>
+              <input type="text" id="com_cargo" placeholder="Ej: Gerente Comercial" />
+            </div>
+            <div class="form-group">
+              <label>Email <span class="req">*</span></label>
+              <input type="email" id="com_email" placeholder="correo@empresa.cl" />
+            </div>
+            <div class="form-group">
+              <label>Celular <span class="req">*</span></label>
+              <input type="tel" id="com_celular" placeholder="+56 9 XXXX XXXX" />
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button class="btn btn-outline" onclick="prevStep(3)">← Anterior</button>
+          <button class="btn btn-primary" onclick="nextStep(3)">Siguiente →</button>
+        </div>
       </div>
 
+      <!-- SECCIÓN 4: MODELO PREVENCIÓN DE DELITOS -->
+      <div class="section" id="sec4">
+        <div class="page-header">
+          <div>
+            <h2>IV. Modelo de Prevención de Delitos</h2>
+            <p>Información según Ley 20.393 y modificaciones (Ley 21.595)</p>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>Base legal:</strong> La presente sección se enmarca en la Ley 21.595 que sistematiza los delitos económicos y atentados contra el medio ambiente. Se requiere respuesta a todas las declaraciones.
+        </div>
+
+        <div class="card">
+          <div class="section-label">II.1 Modelo de Prevención del Delito</div>
+          <p style="font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:0.8rem">
+            La empresa tiene efectivamente implementado un modelo de prevención de delitos para efectos de eximirla de responsabilidad penal en los términos indicados en el art. 50, N° 4 de la ley 21.595.
+          </p>
+          <p style="font-size:0.88rem;font-weight:600;margin-bottom:0.7rem">¿Su empresa cuenta con un Modelo de Prevención del Delito? <span class="req">*</span></p>
+          <div class="yesno-group">
+            <div class="yesno-btn" id="mpd1_si" onclick="selectYesNo('mpd1','si')">✅ Sí</div>
+            <div class="yesno-btn" id="mpd1_no" onclick="selectYesNo('mpd1','no')">❌ No</div>
+          </div>
+          <input type="hidden" id="mpd1_val" />
+        </div>
+
+        <div class="card">
+          <div class="section-label">II.2 Catálogo de Delitos</div>
+          <p style="font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:0.8rem">
+            La presente ley sistematiza los delitos económicos y atentados contra el medio ambiente, regula las penas aplicables a las personas responsables de estos delitos.
+          </p>
+          <p style="font-size:0.88rem;font-weight:600;margin-bottom:0.7rem">¿Tiene identificado el catálogo de delitos aplicables a su organización según Ley 21.595? <span class="req">*</span></p>
+          <div class="yesno-group">
+            <div class="yesno-btn" id="mpd2_si" onclick="selectYesNo('mpd2','si')">✅ Sí</div>
+            <div class="yesno-btn" id="mpd2_no" onclick="selectYesNo('mpd2','no')">❌ No</div>
+          </div>
+          <input type="hidden" id="mpd2_val" />
+        </div>
+
+        <div class="card">
+          <div class="section-label">II.3 Declaración de Proceso Investigativo</div>
+          <p style="font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:0.8rem">
+            ¿La empresa o algún colaborador ha sido investigado o mantiene algún proceso en curso por cualquiera de los delitos indicados en la ley 21.595?
+          </p>
+          <div class="yesno-group">
+            <div class="yesno-btn" id="mpd3_si" onclick="selectYesNo('mpd3','si')">✅ Sí</div>
+            <div class="yesno-btn" id="mpd3_no" onclick="selectYesNo('mpd3','no')">❌ No</div>
+          </div>
+          <input type="hidden" id="mpd3_val" />
+        </div>
+
+        <div class="card">
+          <div class="section-label">II.4 Conflicto de Interés y Vínculo con Funcionarios Públicos o PEP</div>
+
+          <div class="sub-card" style="margin-bottom:0.8rem">
+            <div class="sub-title">Punto 1 — Vínculo con directivos de Multi-X</div>
+            <p style="font-size:0.84rem;color:var(--muted);line-height:1.6;margin-bottom:0.7rem">
+              Declara que usted o alguno de sus colaboradores tiene vínculo de parentesco (padres, hijos, hermanos, tíos, primos, abuelos, nietos, cónyuge, suegros, yerno, nuera o cuñados) con algún directivo, ejecutivo o trabajador de Multi X S.A. o sus filiales.
+            </p>
+            <div class="yesno-group">
+              <div class="yesno-btn" id="mpd4a_si" onclick="selectYesNo('mpd4a','si')">✅ Sí</div>
+              <div class="yesno-btn" id="mpd4a_no" onclick="selectYesNo('mpd4a','no')">❌ No</div>
+            </div>
+            <input type="hidden" id="mpd4a_val" />
+          </div>
+
+          <div class="sub-card">
+            <div class="sub-title">Punto 2 — Relación con Funcionarios Públicos o PEP</div>
+            <p style="font-size:0.84rem;color:var(--muted);line-height:1.6;margin-bottom:0.7rem">
+              ¿Algún colaborador (trabajador, ejecutivo o directivo) de la empresa tiene relación con algún funcionario público o una Persona Expuesta Políticamente (PEP)?
+            </p>
+            <div class="yesno-group">
+              <div class="yesno-btn" id="mpd4b_si" onclick="selectYesNo('mpd4b','si')">✅ Sí</div>
+              <div class="yesno-btn" id="mpd4b_no" onclick="selectYesNo('mpd4b','no')">❌ No</div>
+            </div>
+            <input type="hidden" id="mpd4b_val" />
+          </div>
+
+          <div id="detalle-pep-wrapper" style="display:none;margin-top:1rem">
+            <div class="section-label" style="margin-top:0.5rem">Detalle de vínculos (si respondió Sí en puntos 1 y/o 2)</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nombre <span class="req">*</span></label>
+                <input type="text" id="pep_nombre" placeholder="Nombre completo" />
+              </div>
+              <div class="form-group">
+                <label>RUT <span class="req">*</span></label>
+                <input type="text" id="pep_rut" placeholder="12.345.678-9" />
+              </div>
+              <div class="form-group">
+                <label>Vínculo <span class="req">*</span></label>
+                <input type="text" id="pep_vinculo" placeholder="Ej: Hijo, Cónyuge..." />
+              </div>
+              <div class="form-group">
+                <label>Cargo Funcionario Público</label>
+                <input type="text" id="pep_cargo" placeholder="Cargo que ejerce" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button class="btn btn-outline" onclick="prevStep(4)">← Anterior</button>
+          <button class="btn btn-primary" onclick="nextStep(4)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 5: DOCUMENTACIÓN -->
+      <div class="section" id="sec5">
+        <div class="page-header">
+          <div>
+            <h2>V. Documentación Requerida</h2>
+            <p>Adjunta los documentos necesarios para completar el registro</p>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>Importante:</strong> Todos los documentos deben estar vigentes y en formato PDF o imagen (JPG/PNG). El tamaño máximo por archivo es de 10 MB.
+        </div>
+
+        <!-- Certificado de Vigencia -->
+        <div class="card doc-card" id="doc1-card">
+          <div class="doc-icon">📄</div>
+          <div class="doc-title">Certificado de Vigencia <span class="req">*</span></div>
+          <div class="doc-desc">Documento emitido por el Registro Civil o SRC que acredita la vigencia de la empresa. Debe tener menos de 90 días de emisión.</div>
+          <label class="file-input-label" for="doc_vigencia">
+            📎 Seleccionar archivo
+          </label>
+          <input type="file" id="doc_vigencia" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFile('doc1','doc_vigencia','doc1-name','doc1-card')" />
+          <div class="file-name" id="doc1-name"></div>
+        </div>
+
+        <!-- Declaración MPD -->
+        <div class="card doc-card" id="doc2-card">
+          <div class="doc-icon">⚖️</div>
+          <div class="doc-title">Declaración Modelo de Prevención de Delitos (MPD) <span class="req">*</span></div>
+          <div class="doc-desc">
+            Descarga el documento, complétalo con firma del representante legal y adjúntalo aquí.
+          </div>
+          <a href="Declaracion_MPD_Clientes_Nacional.docx" download class="download-btn">
+            ⬇️ Descargar Declaración MPD
+          </a>
+          <br/>
+          <label class="file-input-label" for="doc_mpd">
+            📎 Adjuntar Declaración MPD firmada
+          </label>
+          <input type="file" id="doc_mpd" accept=".pdf,.jpg,.jpeg,.png,.docx" onchange="handleFile('doc2','doc_mpd','doc2-name','doc2-card')" />
+          <div class="file-name" id="doc2-name"></div>
+        </div>
+
+        <!-- Declaración -->
+        <div class="card" style="background:rgba(0,43,79,0.03);border-color:rgba(0,43,79,0.15)">
+          <div class="section-label">✍️ Declaración Final</div>
+          <p style="font-size:0.85rem;color:var(--fg);line-height:1.75">
+            Declaro que la información consignada en este formulario es correcta, que soy responsable de reportar cualquier cambio en las mismas y afirmo que realizo todas mis actividades dentro de la normativa legal vigente de Chile.<br/><br/>
+            <strong>Declaro no estar incluido en listas de sanciones internacionales (OFAC, ONU, UE, etc.).</strong>
+          </p>
+          <div class="form-grid" style="margin-top:1.2rem">
+            <div class="form-group">
+              <label>Nombre Representante Cliente <span class="req">*</span></label>
+              <input type="text" id="firma_nombre" placeholder="Nombre completo" />
+            </div>
+            <div class="form-group">
+              <label>RUT Representante <span class="req">*</span></label>
+              <input type="text" id="firma_rut" placeholder="12.345.678-9" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:0.8rem">
+            <label class="radio-opt" style="width:fit-content;gap:0.6rem">
+              <input type="checkbox" id="acepta_declaracion" style="width:auto;padding:0;border:none;background:none;box-shadow:none" />
+              <span style="font-size:0.86rem">Acepto y confirmo la declaración anterior <span class="req">*</span></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button class="btn btn-outline" onclick="prevStep(5)">← Anterior</button>
+          <button class="btn btn-salmon" onclick="enviarSolicitud()">Enviar Solicitud ✓</button>
+        </div>
+      </div>
+
+    </div><!-- /form-wrapper -->
+
+    <!-- ÉXITO -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">✅</div>
+      <h2>¡Solicitud Enviada!</h2>
+      <p style="margin-bottom:1rem">Tu ficha de cliente nacional ha sido enviada correctamente. El equipo comercial de Multi-X revisará la información.</p>
+      <div style="background:rgba(0,43,79,0.05);border:1px solid var(--border);border-radius:10px;padding:1rem 1.4rem;margin-bottom:1.5rem;text-align:left">
+        <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.4rem">Número de seguimiento</div>
+        <div style="display:flex;align-items:center;gap:0.7rem;flex-wrap:wrap">
+          <code id="solicitud-id-display" style="font-family:'Courier New',monospace;font-size:0.9rem;color:var(--navy);word-break:break-all">—</code>
+          <button id="btn-copiar-id" data-id="" onclick="navigator.clipboard.writeText(this.getAttribute('data-id')).then(()=>{this.textContent='✓ Copiado';setTimeout(()=>this.textContent='📋 Copiar',2000)})"
+            style="font-family:'Barlow',sans-serif;font-size:0.78rem;font-weight:600;padding:0.3rem 0.8rem;border-radius:5px;border:none;background:var(--navy);color:#fff;cursor:pointer;white-space:nowrap">
+            📋 Copiar
+          </button>
+        </div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.5rem">Guarda este número para consultar el estado de tu solicitud en el portal.</p>
+      </div>
+      <div style="background:#FFFBEB;border:1px solid #fcd34d;border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:1.5rem;font-size:0.8rem;color:#78350f;text-align:left;line-height:1.6">
+        Gracias por completar el presente formulario. La información proporcionada será revisada por el Departamento Legal.
+        Recordamos que Multi X y sus filiales han implementado un Modelo de Prevención de Delitos conforme a la Ley N° 20.393.
+        Para más información: <a href="https://multi-xsalmon.com/compliance" target="_blank" style="color:#92400e">multi-xsalmon.com/compliance</a>
+        y <a href="https://mef.integridadcorporativa.cl" target="_blank" style="color:#92400e">mef.integridadcorporativa.cl</a>
+      </div>
+      <a href="index.html" class="btn btn-primary" style="display:inline-block;text-decoration:none">← Volver al Inicio</a>
     </div>
+
   </div>
-</div>
+</main>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════
-// CONFIGURACIÓN
-// ═══════════════════════════════════════════
-const SA = { usuario:'superadmin', password:'multi2026', nombre:'Superadministrador', rol:'superadmin' };
+let currentStep = 1;
+const TOTAL = 5;
 
-const ROL = {
-  superadmin:{ label:'Superadmin',     color:'#7c3aed', icon:'👑', cls:'role-superadmin' },
-  admin:     { label:'Administrador',  color:'#002B4F', icon:'🛡️', cls:'role-admin' },
-  comercial: { label:'Comercial',      color:'#E8523A', icon:'🤝', cls:'role-comercial' },
-  legal:     { label:'Legal',          color:'#2563eb', icon:'⚖️', cls:'role-legal' },
-  monitor:   { label:'Monitor',        color:'#059669', icon:'📊', cls:'role-monitor' },
-};
-
-let sesion = null;
-let solicitudes = [], solFilt = [], unsub = null, unsubTokens = null;
-let sortField = 'creadoEn', sortAsc = false;
-let detalleAbierto = null;
-let ultimoLink = '';
-
-// ═══════════════════════════════════════════
-// FIREBASE HELPER (para tokens)
-// ═══════════════════════════════════════════
-function fbOk(){
-  return new Promise(r => {
-    if(window.FB_READY){ r(); return; }
-    document.addEventListener('fb-ready', r, { once:true });
-  });
-}
-
-// ═══════════════════════════════════════════
-// LOGIN / LOGOUT
-// ═══════════════════════════════════════════
-async function login(){
-  const u   = (document.getElementById('inp-usuario').value||'').trim().toLowerCase();
-  const p   = (document.getElementById('inp-pass').value||'').trim();
-  const btn = document.getElementById('btn-ingresar');
-  const err = document.getElementById('login-err');
-
-  err.textContent = '';
-  if(!u || !p){ err.textContent = 'Ingresa usuario y contraseña'; return; }
-
-  btn.disabled = true; btn.textContent = 'Verificando...';
-
-  try{
-    const data = await apiFetch('/api/usuarios/login', {
-      method: 'POST',
-      body: JSON.stringify({ usuario: u, password: p })
-    });
-    jwtToken = data.token;
-    iniciarApp({ usuario: data.usuario, nombre: data.nombre, rol: data.rol });
-  } catch(e){
-    err.textContent = e.message || 'Usuario o contraseña incorrectos';
-    btn.disabled = false; btn.textContent = 'Ingresar →';
-  }
-}
-
-function iniciarApp(user){
-  sesion = user;
-  const rol = ROL[user.rol] || ROL.monitor;
-
-  // Guardar sesión para SSO con revisar.html
-  localStorage.setItem('mx_sesion', JSON.stringify({...user, token: jwtToken}));
-
-  document.getElementById('login-gate').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-
-  document.getElementById('sb-avatar').textContent = rol.icon;
-  document.getElementById('sb-avatar').style.background = rol.color;
-  document.getElementById('sb-nombre').textContent = user.nombre;
-  document.getElementById('sb-rol').textContent    = rol.label;
-
-  const esAdmin = ['superadmin','admin'].includes(user.rol);
-  const puedeTokens = ['superadmin','admin','comercial'].includes(user.rol);
-  document.getElementById('nav-sec-config').style.display = esAdmin ? 'block' : 'none';
-  document.getElementById('nav-usuarios').style.display   = esAdmin ? 'flex'  : 'none';
-  document.getElementById('nav-tokens').style.display     = puedeTokens ? 'flex' : 'none';
-
-  arrancarMonitor();
-  if(puedeTokens) arrancarTokens();
-  toast('Bienvenido/a, ' + user.nombre, 'ok');
-}
-
-function logout(){
-  if(unsub) unsub();
-  if(unsubTokens) unsubTokens();
-  sesion = null; solicitudes = []; solFilt = [];
-  jwtToken = null;
-  localStorage.removeItem('mx_sesion');
-  document.getElementById('login-gate').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('inp-usuario').value = '';
-  document.getElementById('inp-pass').value = '';
-  document.getElementById('btn-ingresar').disabled = false;
-  document.getElementById('btn-ingresar').textContent = 'Ingresar →';
-  document.getElementById('login-err').textContent = '';
-  toast('Sesión cerrada', 'info');
-}
-
-// ═══════════════════════════════════════════
-// NAVEGACIÓN
-// ═══════════════════════════════════════════
-function irA(vista){
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('view-' + vista).classList.add('active');
-  const nav = document.getElementById('nav-' + vista);
-  if(nav) nav.classList.add('active');
-  const titulos = { monitor:'📊 Monitor de Solicitudes', tokens:'🔑 Links de Acceso', usuarios:'👥 Gestión de Usuarios' };
-  document.getElementById('topbar-titulo').textContent = titulos[vista] || 'Panel';
-  if(vista === 'usuarios') cargarUsuarios();
-}
-
-// ═══════════════════════════════════════════
-// MONITOR
-// ═══════════════════════════════════════════
-let _monitorInterval = null;
-let unsub = null;
-let unsubTokens = null;
-
-async function arrancarMonitor(){
-  await fbOk();
-  const q = window.FS_query(window.FS_col(window.DB,'solicitudes_clientes'), window.FS_orderBy('creadoEn','desc'));
-  unsub = window.FS_snap(q, snap => {
-    solicitudes = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-    actualizarKPIs();
-    filtrar();
-  }, e => {
-    document.getElementById('monitor-tbody').innerHTML =
-      `<tr><td colspan="9" class="empty" style="color:var(--danger)">Error: ${e.message}</td></tr>`;
-  });
-}
-
-function actualizarKPIs(){
-  const t  = solicitudes.length;
-  const pe = solicitudes.filter(s=>s.estado==='pendiente').length;
-  const re = solicitudes.filter(s=>s.estado==='en_revision').length;
-  const ap = solicitudes.filter(s=>s.estado==='aprobado').length;
-  const rc = solicitudes.filter(s=>s.estado==='rechazado').length;
-  const na = solicitudes.filter(s=>s.tipo_formulario==='nacional').length;
-  const it = solicitudes.filter(s=>s.tipo_formulario==='internacional').length;
-  const fin = ap + rc;
-  const tasa = fin > 0 ? Math.round(ap/fin*100) : 0;
-
-  // Pendientes por área (Legal primero, Comercial segundo)
-  const pendLeg = solicitudes.filter(s =>
-    !s.aprobacion_legal || s.aprobacion_legal === 'pendiente'
-  ).length;
-  const pendCom = solicitudes.filter(s =>
-    s.aprobacion_legal === 'aprobado' &&
-    (!s.aprobacion_comercial || s.aprobacion_comercial === 'pendiente')
-  ).length;
-
-  document.getElementById('k-total').textContent    = t;
-  document.getElementById('k-pend').textContent     = pe;
-  document.getElementById('k-pend-leg').textContent = pendLeg;
-  document.getElementById('k-pend-com').textContent = pendCom;
-  document.getElementById('k-rev').textContent      = re;
-  document.getElementById('k-apro').textContent     = ap;
-  document.getElementById('k-rech').textContent     = rc;
-  document.getElementById('k-tasa').textContent     = tasa+'%';
-  document.getElementById('k-tasa-bar').style.width = tasa+'%';
-  document.getElementById('k-tipos').textContent    = na+' / '+it;
-  if(solicitudes[0]){
-    const d = new Date(solicitudes[0].creadoEn);
-    const h = Math.floor((Date.now()-d)/3600000);
-    document.getElementById('k-ultima').textContent = h<1?'Hace <1h':h<24?`Hace ${h}h`:`Hace ${Math.floor(h/24)}d`;
-  }
-}
-
-function filtrar(){
-  const est   = document.getElementById('f-estado').value;
-  const tipo  = document.getElementById('f-tipo').value;
-  const busca = (document.getElementById('f-buscar').value||'').toLowerCase();
-  const desde = document.getElementById('f-desde').value;
-  const hasta = document.getElementById('f-hasta').value;
-
-  solFilt = solicitudes.filter(s => {
-    if(est   && s.estado !== est) return false;
-    if(tipo  && s.tipo_formulario !== tipo) return false;
-    if(busca){
-      const hay = ((s.razon_social||'')+' '+(s.rut||'')+' '+(s.taxid||'')).toLowerCase();
-      if(!hay.includes(busca)) return false;
-    }
-    if(desde && s.creadoEn < desde) return false;
-    if(hasta && s.creadoEn > hasta+'T23:59:59') return false;
-    return true;
-  });
-
-  solFilt.sort((a,b) => {
-    let va=a[sortField]||'', vb=b[sortField]||'';
-    return sortAsc ? (va>vb?1:-1) : (va<vb?1:-1);
-  });
-
-  const cnt = document.getElementById('monitor-count');
-  cnt.textContent = solFilt.length === solicitudes.length
-    ? `${solicitudes.length} solicitudes`
-    : `${solFilt.length} de ${solicitudes.length} solicitudes`;
-
-  renderTabla();
-}
-
-function limpiarFiltros(){
-  ['f-estado','f-tipo','f-buscar','f-desde','f-hasta'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value='';
-  });
-  filtrar();
-}
-
-function sortBy(field){
-  if(sortField===field) sortAsc=!sortAsc; else { sortField=field; sortAsc=false; }
-  filtrar();
-}
-
-const BADGE_EST = {
-  pendiente:   '<span class="badge b-pendiente">⏳ Pendiente</span>',
-  en_revision: '<span class="badge b-revision">🔍 En revisión</span>',
-  aprobado:    '<span class="badge b-aprobado">✅ Aprobado</span>',
-  rechazado:   '<span class="badge b-rechazado">❌ Rechazado</span>',
-};
-
-function fmtF(iso){
-  if(!iso) return '—';
-  return new Date(iso).toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'})
-    +' '+new Date(iso).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
-}
-
-function renderTabla(){
-  const tbody = document.getElementById('monitor-tbody');
-  if(!solFilt.length){
-    tbody.innerHTML = '<tr><td colspan="9" class="empty">Sin resultados</td></tr>';
-    return;
-  }
-  tbody.innerHTML = solFilt.map(s => {
-    const tipo = s.tipo_formulario==='nacional'
-      ? '<span class="badge b-nac">🇨🇱 Nac</span>'
-      : '<span class="badge b-int">🌐 Int</span>';
-    const badge = BADGE_EST[s.estado] || `<span class="badge">${s.estado}</span>`;
-    const leg = s.aprobacion_legal||'—';
-    const com = s.aprobacion_legal==='aprobado' ? (s.aprobacion_comercial||'pendiente') : '🔒';
-    const idS = s.id.length>12 ? s.id.substring(0,12)+'…' : s.id;
-    return `<tr style="cursor:pointer" onclick="verDetalle('${s.id}')">
-      <td style="font-size:0.77rem;color:var(--muted);white-space:nowrap">${fmtF(s.creadoEn)}</td>
-      <td><strong style="font-size:0.85rem">${s.razon_social||'—'}</strong></td>
-      <td style="font-size:0.78rem;color:var(--muted)">${s.rut||s.taxid||'—'}</td>
-      <td>${tipo}</td>
-      <td>${badge}</td>
-      <td style="font-size:0.78rem">${typeof leg==='string'&&leg!=='🔒'?(leg==='aprobado'?'✅':leg==='rechazado'?'❌':'⏳')+' '+leg:'🔒'}</td>
-      <td style="font-size:0.78rem">${typeof com==='string'&&com!=='🔒'?(com==='aprobado'?'✅':com==='rechazado'?'❌':'⏳')+' '+com:'🔒'}</td>
-      <td style="font-size:0.77rem;color:var(--muted)">${s.email_solicitante||'—'}</td>
-      <td><span style="font-family:'Courier New',monospace;font-size:0.7rem;color:var(--muted);cursor:pointer"
-        title="${s.id}" onclick="event.stopPropagation();copiarTexto('${s.id}',this)">${idS}</span></td>
-    </tr>`;
-  }).join('');
-}
-
-function verDetalle(id){
-  const panel = document.getElementById('detalle-panel');
-  if(detalleAbierto===id){ panel.style.display='none'; detalleAbierto=null; return; }
-  detalleAbierto = id;
-  const s = solicitudes.find(x=>x.id===id);
-  if(!s){ panel.style.display='none'; return; }
-  const badge = BADGE_EST[s.estado]||s.estado;
-  const rut = s.rut||s.taxid||'—';
-  const row = (l,v) => v ? `<div class="dp-row"><div class="dp-label">${l}</div><div class="dp-val">${v}</div></div>` : '';
-  const docLink = (l,d) => d&&d.url ? `<a href="${d.url}" target="_blank" style="font-size:0.82rem;font-weight:600;color:var(--navy);text-decoration:none;margin-right:1rem">📄 ${l}</a>` : '';
-
-  panel.style.display = 'block';
-  panel.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
-      <div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700;color:var(--navy)">${s.razon_social||'—'}</div>
-        <div style="font-size:0.77rem;color:var(--muted);margin-top:0.15rem">${rut} · ${fmtF(s.creadoEn)}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:0.8rem">
-        ${badge}
-        <button onclick="document.getElementById('detalle-panel').style.display='none';detalleAbierto=null"
-          style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)">✕</button>
-      </div>
-    </div>
-    <div class="dp-grid">
-      <div>
-        <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.5rem">Datos generales</div>
-        ${row('Razón social',s.razon_social)}${row('RUT / Tax ID',rut)}${row('País',s.pais)}
-        ${row('Región / Ciudad',[s.region,s.ciudad].filter(Boolean).join(' — '))}
-        ${row('Dirección',s.direccion)}${row('Celular',s.celular)}${row('Email',s.email_solicitante)}
-      </div>
-      <div>
-        <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.5rem">Representante legal</div>
-        ${row('Nombre',s.rl1_nombre)}${row('RUT',s.rl1_rut||s.rl1_taxid)}${row('Cargo',s.rl1_cargo)}
-        <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin:0.8rem 0 0.5rem">Flujo de aprobación</div>
-        ${row('Legal',s.aprobacion_legal||'pendiente')}${row('Comercial',s.aprobacion_comercial||'—')}
-        ${s.motivoRechazo?row('Motivo rechazo',s.motivoRechazo):''}
-      </div>
-    </div>
-    ${(s.doc_vigencia||s.doc_mpd)?`<div style="margin-top:1rem;padding-top:0.8rem;border-top:1px solid var(--border)">${docLink('Certificado de Vigencia',s.doc_vigencia)}${docLink('Declaración MPD',s.doc_mpd)}</div>`:''}
-    <div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--border)">
-      <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem">ID de solicitud</div>
-      <code style="font-size:0.78rem;color:var(--muted)">${s.id}</code>
-    </div>`;
-  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
-}
-
-function exportCSV(){
-  if(!solFilt.length){ toast('Sin datos','err'); return; }
-  const cols=['ID','Tipo','Estado','Razón Social','RUT/TaxID','País','Región','Ciudad','Email','Celular','RL Nombre','RL Cargo','Fecha'];
-  const q = v => '"'+String(v||'').replace(/"/g,'""')+'"';
-  const rows = solFilt.map(s=>[s.id,s.tipo_formulario,s.estado,s.razon_social,s.rut||s.taxid,s.pais,s.region,s.ciudad,s.email_solicitante,s.celular,s.rl1_nombre,s.rl1_cargo,s.creadoEn?new Date(s.creadoEn).toLocaleString('es-CL'):''].map(q).join(','));
-  const csv = String.fromCharCode(0xFEFF)+[cols.map(q).join(','),...rows].join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-  a.download = 'solicitudes_'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click();
-}
-
-// ═══════════════════════════════════════════
-// TOKENS
-// ═══════════════════════════════════════════
-function genCodigo(){
-  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let s='';for(let i=0;i<8;i++)s+=c[Math.floor(Math.random()*c.length)];
-  return s.slice(0,4)+'-'+s.slice(4);
-}
-
-let _tokensInterval = null;
-
-async function arrancarTokens(){
-  await fbOk();
-  const q = window.FS_query(window.FS_col(window.DB,'invitaciones_clientes'), window.FS_orderBy('creadoEn','desc'));
-  window.FS_snap(q, snap => {
-    renderTokens(snap.docs.map(d=>({id:d.id,...d.data()})));
-  });
-}
-
-async function cargarTokens(){
-  // usada por polling — no aplica en Firebase
-}
-
-async function generarToken(){
-  const tipo    = document.getElementById('tf-tipo').value;
-  const empresa = document.getElementById('tf-empresa').value.trim();
-  const email   = document.getElementById('tf-email').value.trim();
-  const horas   = parseInt(document.getElementById('tf-horas').value)||48;
-  const ahora   = new Date();
-  const expira  = new Date(ahora.getTime()+horas*3600000);
-  const codigo  = genCodigo();
-  try{
-    await fbOk();
-    await window.FS_setDoc(window.FS_doc(window.DB,'invitaciones_clientes', codigo),{
-      codigo, tipo, empresa:empresa||null, email:email||null,
-      creadoEn:ahora.toISOString(), expiraEn:expira.toISOString(),
-      horas, estado:'activo', solicitudId:null
-    });
-    const base = window.location.href.replace(/admin\.html.*$/,'').replace(/\/$/,'');
-    const form = tipo==='nacional'?'cliente_nacional.html':'cliente_internacional.html';
-    ultimoLink = `${base}/${form}?token=${encodeURIComponent(codigo)}`;
-    document.getElementById('token-result-link').textContent = ultimoLink;
-    document.getElementById('token-result').style.display = 'block';
-    document.getElementById('tf-empresa').value='';
-    document.getElementById('tf-email').value='';
-    toast('✅ Link generado','ok');
-  } catch(e){ toast('Error: '+e.message,'err'); }
-}
-
-function copiarLink(){
-  navigator.clipboard.writeText(ultimoLink).then(()=>toast('📋 Link copiado','ok'));
-}
-
-async function revocarToken(id){
-  if(!confirm('¿Revocar este acceso?')) return;
-  await window.FS_update(window.FS_doc(window.DB,'invitaciones_clientes',id),{estado:'revocado'});
-  toast('Token revocado','info');
-}
-
-async function copiarLinkToken(codigo, tipo){
-  const base = window.location.href.replace(/admin\.html.*$/,'').replace(/\/$/,'');
-  const form = tipo==='nacional'?'cliente_nacional.html':'cliente_internacional.html';
-  await navigator.clipboard.writeText(`${base}/${form}?token=${encodeURIComponent(codigo)}`);
-  toast('📋 Link copiado','ok');
-}
-
-function fmtTokenF(iso){
-  if(!iso) return '—';
-  return new Date(iso).toLocaleString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-}
-
-function estadoToken(t){
-  if(t.estado==='revocado') return '<span class="badge-revocado">Revocado</span>';
-  if(t.estado==='usado')    return '<span class="badge-usado">Usado ✓</span>';
-  if(new Date(t.expiraEn)<new Date()) return '<span class="badge-expirado">Expirado</span>';
-  return '<span class="badge-activo">Activo</span>';
-}
-
-function renderTokens(tokens){
-  const tbody = document.getElementById('token-tbody');
-  if(!tokens.length){ tbody.innerHTML='<tr><td colspan="7" class="empty">No hay links generados aún</td></tr>'; return; }
-  tbody.innerHTML = tokens.map(t => {
-    const activo = t.estado==='activo' && new Date(t.expiraEn)>new Date();
-    return `<tr>
-      <td><span class="t-code" onclick="navigator.clipboard.writeText('${t.codigo}').then(()=>toast('Código copiado','ok'))">${t.codigo}</span></td>
-      <td><span class="badge ${t.tipo==='nacional'?'b-nac':'b-int'}">${t.tipo==='nacional'?'🇨🇱 Nac':'🌐 Int'}</span></td>
-      <td style="font-size:0.8rem;color:var(--muted)">${t.empresa||'—'}</td>
-      <td style="font-size:0.77rem;color:var(--muted);white-space:nowrap">${fmtTokenF(t.creadoEn)}</td>
-      <td style="font-size:0.77rem;color:var(--muted);white-space:nowrap">${fmtTokenF(t.expiraEn)}</td>
-      <td>${estadoToken(t)}</td>
-      <td style="display:flex;gap:0.4rem">
-        ${activo?`<button class="btn-sm btn-copy" onclick="copiarLinkToken('${t.codigo}','${t.tipo}')">📋 Copiar</button>`:''}
-        ${activo?`<button class="btn-sm btn-rev" onclick="revocarToken('${t.id}')">Revocar</button>`:''}
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-// ═══════════════════════════════════════════
-// USUARIOS
-// ═══════════════════════════════════════════
-async function cargarUsuarios(){
-  const body = document.getElementById('usuarios-body');
-  body.innerHTML = '<div class="empty"><span class="spinner"></span>Cargando...</div>';
-  const usuarios = await apiFetch('/api/usuarios');
-  const esSA = sesion?.rol==='superadmin';
-
-  body.innerHTML = `
-    ${esSA ? `<div class="nu-form">
-      <div class="nu-title">➕ Crear nuevo usuario</div>
-      <div class="nu-grid">
-        <div><label>Nombre completo</label><input type="text" id="nu-nombre" placeholder="Juan Pérez"/></div>
-        <div><label>Usuario (login)</label><input type="text" id="nu-usuario" placeholder="juanp" autocomplete="off"/></div>
-      </div>
-      <div class="nu-grid">
-        <div><label>Contraseña</label><input type="password" id="nu-pass" placeholder="mínimo 8 caracteres" autocomplete="new-password"/></div>
-        <div><label>Rol</label>
-          <select id="nu-rol">
-            <option value="admin">🛡️ Administrador</option>
-            <option value="comercial">🤝 Comercial</option>
-            <option value="legal">⚖️ Legal</option>
-            <option value="monitor">📊 Monitor</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn-crear" onclick="crearUsuario()">Crear usuario →</button>
-    </div>` : ''}
-    <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.7rem">
-      ${usuarios.length+1} usuarios registrados
-    </div>
-    <div class="user-card" style="border-left:3px solid #7c3aed">
-      <div class="u-avatar" style="background:#7c3aed">👑</div>
-      <div style="flex:1">
-        <div class="u-name">Superadministrador</div>
-        <div class="u-user">@superadmin · <span class="role-pill role-superadmin">Superadmin</span></div>
-      </div>
-      <span style="font-size:0.7rem;color:var(--muted);font-style:italic">Hardcodeado</span>
-    </div>
-    ${usuarios.map(u => {
-      const r = ROL[u.rol]||ROL.monitor;
-      const activo = u.activo!==false;
-      return `<div class="user-card" style="border-left:3px solid ${r.color};opacity:${activo?1:0.5}">
-        <div class="u-avatar" style="background:${r.color}">${r.icon}</div>
-        <div style="flex:1">
-          <div class="u-name">${u.nombre} ${activo?'':'<span style="font-size:0.7rem;color:var(--danger)">(desactivado)</span>'}</div>
-          <div class="u-user">@${u.usuario} · <span class="role-pill ${r.cls}">${r.label}</span></div>
-        </div>
-        ${esSA?`<div style="display:flex;gap:0.4rem">
-          <button class="btn-icon" title="${activo?'Desactivar':'Activar'}" onclick="toggleUser('${u.id}',${activo})">${activo?'🔒':'✅'}</button>
-          <button class="btn-icon" onclick="eliminarUser('${u.id}','${u.nombre}')">🗑</button>
-        </div>`:''}
-      </div>`;
-    }).join('')}
-  `;
-}
-
-async function crearUsuario(){
-  const nombre  = (document.getElementById('nu-nombre').value||'').trim();
-  const usuario = (document.getElementById('nu-usuario').value||'').trim().toLowerCase();
-  const pass    = (document.getElementById('nu-pass').value||'').trim();
-  const rol     = document.getElementById('nu-rol').value;
-  if(!nombre||!usuario||!pass){ toast('Completa todos los campos','err'); return; }
-  if(pass.length<8){ toast('Contraseña mínimo 8 caracteres','err'); return; }
-  if(usuario==='superadmin'){ toast('Nombre de usuario reservado','err'); return; }
-  try {
-    await apiFetch('/api/usuarios', {
-      method: 'POST',
-      body: JSON.stringify({ nombre, usuario, password: pass, rol })
-    });
-    toast(`✅ Usuario @${usuario} creado`,'ok');
-    document.getElementById('nu-nombre').value='';
-    document.getElementById('nu-usuario').value='';
-    document.getElementById('nu-pass').value='';
-    cargarUsuarios();
-  } catch(e){ toast('Error: '+e.message,'err'); }
-}
-
-async function toggleUser(id, activo){
-  try {
-    await apiFetch(`/api/usuarios/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ activo: !activo })
-    });
-    toast(activo?'Usuario desactivado':'Usuario activado','info');
-    cargarUsuarios();
-  } catch(e){ toast('Error: '+e.message,'err'); }
-}
-
-async function eliminarUser(id, nombre){
-  if(!confirm(`¿Eliminar al usuario "${nombre}"?`)) return;
-  try {
-    await apiFetch(`/api/usuarios/${id}`, { method: 'DELETE' });
-    toast('Usuario eliminado','info');
-    cargarUsuarios();
-  } catch(e){ toast('Error: '+e.message,'err'); }
-}
-
-// ═══════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════
-function toast(msg, tipo='ok'){
+function toast(msg, type='ok'){
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = `toast show ${tipo}`;
-  setTimeout(()=>t.className='toast', 3500);
+  t.className = 'toast show ' + type;
+  setTimeout(()=>t.className='toast',3000);
 }
 
-function copiarTexto(texto, el){
-  navigator.clipboard.writeText(texto).then(()=>{
-    const orig = el.textContent;
-    el.textContent='✓';
-    el.style.color='var(--success)';
-    setTimeout(()=>{ el.textContent=orig; el.style.color=''; }, 2000);
+function goStep(n){
+  document.querySelectorAll('.section').forEach((s,i)=>{
+    s.classList.toggle('active', i === n-1);
+  });
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i < n-1) s.classList.add('done');
+    if(i === n-1) s.classList.add('active');
+  });
+  document.querySelectorAll('.nav-item').forEach((s,i)=>{
+    s.classList.toggle('active', i === n-1);
+  });
+  currentStep = n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function validateStep(n){
+  if(n===1){
+    const fields = ['fecha','rut','razon_social','pais','region','ciudad','direccion','celular','email_solicitante'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!document.querySelector('input[name="tipo_empresa"]:checked')){toast('Selecciona el tipo de empresa','err');return false;}
+    if(!document.querySelector('input[name="tipo_persona"]:checked')){toast('Selecciona el tipo de persona','err');return false;}
+    if(!ok){toast('Completa todos los campos obligatorios','err');return false;}
+  }
+  if(n===2){
+    const fields = ['rl1_nombre','rl1_rut','rl1_cargo'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!ok){toast('Completa los datos del Representante Legal N°1','err');return false;}
+  }
+  if(n===3){
+    const fields = ['cob_nombre','cob_cargo','cob_email','cob_celular','com_nombre','com_cargo','com_email','com_celular'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!ok){toast('Completa todos los campos de contacto','err');return false;}
+  }
+  if(n===4){
+    const campos = ['mpd1_val','mpd2_val','mpd3_val','mpd4a_val','mpd4b_val'];
+    for(const c of campos){
+      if(!document.getElementById(c).value){toast('Responde todas las preguntas del MPD','err');return false;}
+    }
+  }
+  if(n===5){
+    if(!document.getElementById('doc_vigencia').files.length){toast('Adjunta el Certificado de Vigencia','err');return false;}
+    if(!document.getElementById('doc_mpd').files.length){toast('Adjunta la Declaración MPD firmada','err');return false;}
+    if(!document.getElementById('firma_nombre').value.trim()){toast('Ingresa el nombre del representante','err');return false;}
+    if(!document.getElementById('acepta_declaracion').checked){toast('Debes aceptar la declaración final','err');return false;}
+  }
+  return true;
+}
+
+function nextStep(n){
+  if(!validateStep(n)) return;
+  if(n < TOTAL) goStep(n+1);
+}
+function prevStep(n){
+  if(n > 1) goStep(n-1);
+}
+
+function togglePersona(el){
+  const lbl = document.getElementById('rut-label');
+  if(el.value==='Natural') lbl.innerHTML='Número de Cédula <span class="req">*</span>';
+  else lbl.innerHTML='RUT <span class="req">*</span>';
+}
+function syncTipoEmpresa(el){}
+
+function selectYesNo(prefix, val){
+  const siBtn = document.getElementById(prefix+'_si');
+  const noBtn = document.getElementById(prefix+'_no');
+  siBtn.classList.remove('selected-yes','selected-no');
+  noBtn.classList.remove('selected-yes','selected-no');
+  if(val==='si'){siBtn.classList.add('selected-yes');}
+  else{noBtn.classList.add('selected-no');}
+  document.getElementById(prefix+'_val').value = val;
+  // Mostrar detalle PEP si corresponde
+  if(prefix==='mpd4a'||prefix==='mpd4b'){
+    const a = document.getElementById('mpd4a_val').value;
+    const b = document.getElementById('mpd4b_val').value;
+    document.getElementById('detalle-pep-wrapper').style.display = (a==='si'||b==='si')?'block':'none';
+  }
+}
+
+function handleFile(docId, inputId, nameId, cardId){
+  const file = document.getElementById(inputId).files[0];
+  if(file){
+    document.getElementById(nameId).textContent = '✓ ' + file.name;
+    document.getElementById(cardId).classList.add('has-file');
+  }
+}
+
+function submitForm(){
+  if(!validateStep(5)) return;
+  document.getElementById('form-wrapper').style.display='none';
+  document.getElementById('progress-bar').style.display='none';
+  document.getElementById('success-screen').classList.add('show');
+  toast('¡Solicitud enviada exitosamente!','ok');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOKEN VALIDATION + FIREBASE SUBMIT
+// ═══════════════════════════════════════════════════════════════
+const CLOUDINARY_CLOUD  = 'dh6nbakdn';
+const CLOUDINARY_PRESET = 'capacitaciones_unsigned';
+const POWER_AUTOMATE_WEBHOOK = (
+  document.querySelector('meta[name="pa-webhook"]')?.content || ''
+).trim().replace('__PA_WEBHOOK__','');
+
+let tokenValidado = null; // guardará el doc de Firestore del token
+let tokenDocId    = null;
+
+function fbNacReady(){
+  return new Promise(resolve => {
+    if(window._fbNac){ resolve(); return; }
+    document.addEventListener('fb-nac-ready', resolve, { once:true });
   });
 }
 
-// Enter en login
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('inp-usuario').focus();
+// ── Arranque: verificar si hay ?token= en la URL ─────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const tokenUrl = params.get('token');
+
+  const gate       = document.getElementById('token-gate');
+  const progress   = document.getElementById('progress-bar');
+  const formWrap   = document.getElementById('form-wrapper');
+
+  // Si viene token en la URL, pre-rellenar y validar automáticamente
+  if(tokenUrl){
+    gate.style.display = 'flex';
+    progress.style.display = 'none';
+    formWrap.style.display = 'none';
+    document.getElementById('token-input').value = tokenUrl.toUpperCase();
+    // Auto-validar
+    setTimeout(() => validarToken(), 500);
+  } else {
+    // Sin token en URL: mostrar directamente el gate
+    gate.style.display = 'flex';
+    progress.style.display = 'none';
+    formWrap.style.display = 'none';
+  }
 });
+
+async function validarToken(){
+  const codigo = (document.getElementById('token-input').value || '').trim().toUpperCase();
+  const err    = document.getElementById('token-err');
+  const btn    = document.getElementById('btn-validar-token');
+
+  if(!codigo){ err.textContent='Ingresa el código de acceso'; err.style.display='block'; return; }
+  err.style.display = 'none';
+  btn.textContent = '⏳ Verificando...';
+  btn.disabled = true;
+
+  try {
+    await fbNacReady();
+    const docSnap = await window._getDoc_nac(window._doc_ref(window._db_nac,'invitaciones_clientes', codigo));
+
+    if(!docSnap.exists()){
+      err.textContent = 'Código no encontrado. Verifica e intenta de nuevo.';
+      err.style.display = 'block';
+      btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+      return;
+    }
+
+    const t = docSnap.data();
+    tokenDocId = codigo;
+
+    if(t.estado === 'revocado'){
+      err.textContent = 'Este código ha sido revocado. Contacta al equipo comercial.';
+      err.style.display = 'block'; btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+      return;
+    }
+    if(t.estado === 'usado'){
+      err.textContent = 'Este código ya fue utilizado para una solicitud.';
+      err.style.display = 'block'; btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+      return;
+    }
+    if(new Date(t.expiraEn) < new Date()){
+      err.textContent = 'Este código ha expirado. Solicita uno nuevo al equipo comercial.';
+      err.style.display = 'block'; btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+      return;
+    }
+    if(t.tipo && t.tipo !== 'nacional'){
+      err.textContent = 'Este código es para el formulario Internacional, no Nacional.';
+      err.style.display = 'block'; btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+      return;
+    }
+
+    // ✅ Token válido
+    tokenValidado = { id: docSnap.id, ...t };
+    document.getElementById('token-gate').style.display    = 'none';
+    document.getElementById('progress-bar').style.display  = 'flex';
+    document.getElementById('form-wrapper').style.display  = 'block';
+
+    // Pre-rellenar email si viene en el token
+    if(t.email){
+      const emailField = document.getElementById('email_solicitante');
+      if(emailField) emailField.value = t.email;
+    }
+    if(t.empresa){
+      const rsField = document.getElementById('razon_social');
+      if(rsField && !rsField.value) rsField.value = t.empresa;
+    }
+
+    // Preseleccionar fecha de hoy
+    const fechaField = document.getElementById('fecha');
+    if(fechaField && !fechaField.value){
+      fechaField.value = new Date().toISOString().slice(0,10);
+    }
+
+  } catch(e){
+    err.textContent = 'Error al verificar: ' + e.message;
+    err.style.display = 'block';
+  }
+  btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+}
+
+// ── Subir archivo a Cloudinary ───────────────────────────────
+async function subirCloudinary(file, folder){
+  const form = new FormData();
+  form.append('file', file);
+  form.append('upload_preset', CLOUDINARY_PRESET);
+  form.append('folder', folder);
+  const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/auto/upload`, { method:'POST', body:form });
+  if(!r.ok) throw new Error('Error Cloudinary: ' + r.status);
+  return await r.json();
+}
+
+// ── Submit real ───────────────────────────────────────────────
+async function enviarSolicitud(){
+  if(!validateStep(5)) return;
+
+  const btn = document.querySelector('.btn.btn-salmon[onclick="submitForm()"]');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
+
+  try {
+    await fbNacReady();
+
+    // 1. Subir documentos a Cloudinary
+    toast('Subiendo documentos...','ok');
+    const fileVig = document.getElementById('doc_vigencia').files[0];
+    const fileMpd = document.getElementById('doc_mpd').files[0];
+    const [resVig, resMpd] = await Promise.all([
+      subirCloudinary(fileVig, 'clientes/nacionales/vigencia'),
+      subirCloudinary(fileMpd, 'clientes/nacionales/mpd'),
+    ]);
+
+    // 2. Recopilar datos
+    const g = id => (document.getElementById(id)?.value || '').trim();
+    const radio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
+
+    const datos = {
+      tipo_formulario:    'nacional',
+      estado:             'pendiente',
+      aprobacion_legal:    'pendiente',
+      aprobacion_comercial: null,
+      creadoEn:           new Date().toISOString(),
+      tokenUsado:         tokenValidado?.codigo || null,
+      // Paso 1
+      fecha:          g('fecha'),
+      tipo_empresa:   radio('tipo_empresa'),
+      tipo_persona:   radio('tipo_persona'),
+      rut:            g('rut'),
+      razon_social:   g('razon_social'),
+      pais:           g('pais'),
+      region:         g('region'),
+      ciudad:         g('ciudad'),
+      direccion:      g('direccion'),
+      celular:        g('celular'),
+      telefono:       g('telefono'),
+      email_solicitante: g('email_solicitante'),
+      // Paso 2
+      rl1_nombre: g('rl1_nombre'), rl1_rut: g('rl1_rut'), rl1_cargo: g('rl1_cargo'),
+      rl2_nombre: g('rl2_nombre'), rl2_rut: g('rl2_rut'), rl2_cargo: g('rl2_cargo'),
+      s1_nombre:  g('s1_nombre'),  s1_rut:  g('s1_rut'),
+      s2_nombre:  g('s2_nombre'),  s2_rut:  g('s2_rut'),
+      // Paso 3
+      cob_nombre: g('cob_nombre'), cob_cargo: g('cob_cargo'), cob_email: g('cob_email'), cob_celular: g('cob_celular'),
+      com_nombre: g('com_nombre'), com_cargo: g('com_cargo'), com_email: g('com_email'), com_celular: g('com_celular'),
+      // Paso 4 MPD
+      mpd1_val: g('mpd1_val'), mpd2_val: g('mpd2_val'), mpd3_val: g('mpd3_val'),
+      mpd4a_val: g('mpd4a_val'), mpd4b_val: g('mpd4b_val'),
+      detalle_pep: g('detalle_pep'),
+      // Paso 5
+      firma_nombre: g('firma_nombre'), firma_rut: g('firma_rut'),
+      // Cloudinary docs
+      doc_vigencia: { url: resVig.secure_url, publicId: resVig.public_id, nombre: fileVig.name },
+      doc_mpd:      { url: resMpd.secure_url, publicId: resMpd.public_id, nombre: fileMpd.name },
+      aprobaciones: {},
+      pdfUrl:       null,
+      flowRunId:    null,
+      motivoRechazo: null,
+    };
+
+    // 3. Guardar en Firestore
+    toast('Guardando solicitud...','ok');
+    const ref = await window._addDoc(window._col(window._db_nac, 'solicitudes_clientes'), datos);
+    const solicitudId = ref.id;
+
+    // 4. Marcar token como usado
+    if(tokenDocId){
+      await window._updateDoc(window._doc_ref(window._db_nac, 'invitaciones_clientes', tokenDocId), {
+        estado: 'usado', solicitudId
+      });
+    }
+
+    // 5. Llamar webhook Power Automate
+    if(POWER_AUTOMATE_WEBHOOK && POWER_AUTOMATE_WEBHOOK !== '__PA_WEBHOOK__'){
+      try {
+        await fetch(POWER_AUTOMATE_WEBHOOK, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            solicitudId, tipo: 'nacional',
+            razonSocial: datos.razon_social,
+            rut: datos.rut,
+            solicitante: datos.email_solicitante,
+            region: datos.region, ciudad: datos.ciudad,
+            celular: datos.celular,
+            rl1: `${datos.rl1_nombre} (${datos.rl1_cargo})`,
+            creadoEn: datos.creadoEn,
+          })
+        });
+      } catch(e){ console.warn('Webhook no disponible:', e.message); }
+    }
+
+    // 6. Mostrar pantalla de éxito con ID
+    document.getElementById('form-wrapper').style.display  = 'none';
+    document.getElementById('progress-bar').style.display  = 'none';
+    const screen = document.getElementById('success-screen');
+    screen.classList.add('show');
+    const idEl = document.getElementById('solicitud-id-display');
+    if(idEl) idEl.textContent = solicitudId;
+    const copyBtn = document.getElementById('btn-copiar-id');
+    if(copyBtn) copyBtn.setAttribute('data-id', solicitudId);
+
+  } catch(e){
+    toast('Error al enviar: ' + e.message, 'err');
+    if(btn){ btn.disabled = false; btn.textContent = 'Enviar Solicitud ✓'; }
+  }
+}
+
 </script>
 </body>
 </html>
