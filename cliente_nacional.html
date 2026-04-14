@@ -876,12 +876,13 @@ async function initMpdScroll(){
     const { height } = page.getSize();
 
     // Coordenadas aproximadas de los campos (ajustar si es necesario)
+    // Coordenadas calibradas con PyMuPDF (A4: 595x842 pts)
     const campos = [
-      { text: razonSocial, x: 200, y: height - 118, size: 10 },
-      { text: rut,         x: 75,  y: height - 136, size: 10 },
-      { text: fecha,       x: 310, y: height - 136, size: 10 },
-      { text: firmaNombre, x: 54,  y: height - 163, size: 10 },
-      { text: firmaRut,    x: 54,  y: height - 181, size: 10 },
+      { text: razonSocial, x: 175, y: 755, size: 10 },  // Razón Social: ____
+      { text: rut,         x: 75,  y: 735, size: 10 },  // Rut: ____
+      { text: fecha,       x: 290, y: 735, size: 10 },  // fecha: ____
+      { text: firmaNombre, x: 57,  y: 696, size: 10 },  // Yo,...
+      { text: firmaRut,    x: 390, y: 696, size: 10 },  // Cédula de Identidad N°
     ];
 
     campos.forEach(c => {
