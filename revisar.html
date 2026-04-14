@@ -739,10 +739,19 @@ async function cargarSolicitudes(){
     renderTabla();
   } catch(e){
     console.warn('Error cargando solicitudes:', e.message);
+    if(e.message === 'Token requerido' || e.message.includes('401')){
+      // Token expirado — forzar re-login
+      localStorage.removeItem('mx_sesion');
+      window._jwtRev = null;
+      cerrarSesion();
+      const err = document.getElementById('gate-err');
+      if(err){ err.textContent = 'Sesión expirada. Ingresa nuevamente.'; err.style.display='block'; }
+      return;
+    }
     const el = document.getElementById('tabla-body') || document.getElementById('solicitudes-body');
     if(el) el.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#dc2626">
-      Error cargando datos: ${e.message}<br>
-      <button onclick="cargarSolicitudes()" style="margin-top:0.5rem;padding:0.4rem 0.9rem;border-radius:6px;border:1px solid #dc2626;background:transparent;color:#dc2626;cursor:pointer">
+      Error: ${e.message}
+      <button onclick="cargarSolicitudes()" style="margin-left:1rem;padding:0.4rem 0.9rem;border-radius:6px;border:1px solid #dc2626;background:transparent;color:#dc2626;cursor:pointer">
         Reintentar
       </button>
     </td></tr>`;
@@ -1146,27 +1155,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const navP = document.getElementById('nav-pendientes');
   if(navP) navP.addEventListener('click', () => filtrarVista('pendientes'));
 
-  // SSO: intentar login automático desde sesión de admin.html
+  // SSO: leer token desde sesión de admin.html
   try {
     const stored = localStorage.getItem('mx_sesion');
     if(stored){
       const user = JSON.parse(stored);
       const rolesPermitidos = ['superadmin','admin','comercial','legal'];
       if(user && user.token && rolesPermitidos.includes(user.rol)){
-        // Verificar que el token es válido antes de usarlo
-        const testRes = await fetch(API_REV + '/api/usuarios/me', {
-          headers: { 'Authorization': 'Bearer ' + user.token }
-        });
-        if(testRes.ok){
-          areaActual    = ROL_AREA[user.rol] || 'comercial';
-          sesionUsuario = user;
-          window._jwtRev = user.token;
-          _iniciarSesion();
-          return;
-        } else {
-          // Token expirado — limpiar localStorage
-          localStorage.removeItem('mx_sesion');
-        }
+        window._jwtRev = user.token;
+        areaActual    = ROL_AREA[user.rol] || 'comercial';
+        sesionUsuario = user;
+        _iniciarSesion();
+        return;
       }
     }
   } catch(e){ console.warn('SSO error:', e); }
