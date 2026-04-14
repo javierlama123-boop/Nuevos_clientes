@@ -284,6 +284,51 @@ input[type=file]{display:none}
 <!-- API Azure -->
 <script>
 const API_NAC = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
+
+let tokenValidado = null;
+let tokenDocId    = null;
+
+async function validarToken(){
+  const codigo = (document.getElementById('token-input').value || '').trim().toUpperCase();
+  const err    = document.getElementById('token-err');
+  const btn    = document.getElementById('btn-validar-token');
+
+  if(!codigo){ err.textContent='Ingresa tu código de acceso'; err.style.display='block'; return; }
+  err.style.display = 'none';
+  btn.textContent = '⏳ Verificando...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_NAC}/api/tokens/validar/${encodeURIComponent(codigo)}`);
+    if(!res.ok){
+      const e = await res.json().catch(()=>({}));
+      throw new Error(e.detail || 'Código no encontrado');
+    }
+    const t = await res.json();
+    tokenDocId    = codigo;
+    tokenValidado = { codigo, ...t };
+
+    if(t.tipo && t.tipo !== 'nacional'){
+      err.textContent = 'Este código es para el formulario internacional.';
+      err.style.display = 'block'; btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+      return;
+    }
+
+    // Token válido — mostrar formulario
+    document.getElementById('token-gate').style.display    = 'none';
+    document.getElementById('progress-bar').style.display  = 'flex';
+    document.getElementById('form-wrapper').style.display  = 'block';
+
+    // Prellenar datos si vienen en el token
+    if(t.empresa){ const f = document.getElementById('razon_social'); if(f && !f.value) f.value = t.empresa; }
+    if(t.email)  { const f = document.getElementById('email_solicitante'); if(f) f.value = t.email; }
+
+  } catch(e){
+    err.textContent = e.message || 'Código no encontrado. Verifica e intenta de nuevo.';
+    err.style.display = 'block';
+    btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+  }
+}
 </script>
 <!-- pdf-lib: generar PDF dinámico -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
