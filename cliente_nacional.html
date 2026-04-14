@@ -927,24 +927,10 @@ async function initMpdScroll(){
       await pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
     }
 
-    // Detectar scroll hasta el final
-    pagesDiv.addEventListener('scroll', () => {
-      const atBottom = pagesDiv.scrollHeight - pagesDiv.scrollTop - pagesDiv.clientHeight < 60;
-      if(atBottom && !mpdScrolled){
-        mpdScrolled = true;
-        if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
-        if(hint) hint.style.display='none';
-      }
-    });
-
-    // Fallback: habilitar tras 30 segundos aunque no haga scroll
-    setTimeout(()=>{
-      if(!mpdScrolled){
-        mpdScrolled=true;
-        if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
-        if(hint) hint.style.display='none';
-      }
-    }, 30000);
+    // Habilitar checkbox apenas termina de renderizar el PDF
+    mpdScrolled = true;
+    if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
+    if(hint){ hint.style.display='none'; }
 
   } catch(e){
     console.warn('Error generando PDF:', e);
@@ -1298,10 +1284,7 @@ function toggleMpdCb(){
   const cb    = document.getElementById('acepta_mpd');
   const label = document.getElementById('mpd-cb-label');
   if(!cb || !label) return;
-  if(!cb.checked && !mpdScrolled){
-    toast('Desplázate hasta el final del documento primero', 'err');
-    return;
-  }
+
   cb.checked = !cb.checked;
   label.classList.toggle('checked', cb.checked);
 }
