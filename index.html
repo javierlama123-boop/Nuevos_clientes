@@ -154,26 +154,8 @@ body{
 }
 </style>
 
-<!-- Firebase (solo para consulta de estado) -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
-  authDomain: "clientesnuevos-e915d.firebaseapp.com",
-  projectId: "clientesnuevos-e915d",
-  storageBucket: "clientesnuevos-e915d.firebasestorage.app",
-  messagingSenderId: "366989020508",
-  appId: "1:366989020508:web:686a320c65ba1fc02bc599"
-};
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-window._db  = db;
-window._doc = doc;
-window._getDoc = getDoc;
-window._fbOk = true;
-document.dispatchEvent(new Event('fb-ready'));
-</script>
+<!-- API Azure (consulta de estado) -->
+<script>const API_IDX = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';</script>
 </head>
 <body>
 
@@ -265,14 +247,8 @@ async function consultarEstado(){
   res.style.display = 'none';
 
   try {
-    await new Promise(resolve => {
-      if(window._fbOk){ resolve(); return; }
-      document.addEventListener('fb-ready', resolve, { once:true });
-    });
-
-    const snap = await window._getDoc(window._doc(window._db, 'solicitudes_clientes', id));
-
-    if(!snap.exists()){
+    const response = await fetch(`${API_IDX}/api/solicitudes/${encodeURIComponent(id)}`);
+    if(!response.ok){
       res.style.display = 'block';
       res.innerHTML = `<div style="background:#FEF2F2;border:1px solid #fca5a5;border-radius:8px;padding:0.9rem 1.1rem;font-size:0.83rem;color:#991b1b">
         No se encontró ninguna solicitud con ese número. Verifica que lo hayas ingresado correctamente.
@@ -280,7 +256,7 @@ async function consultarEstado(){
       return;
     }
 
-    const d   = snap.data();
+    const d = await response.json();
     const est = ESTADOS[d.estado] || ESTADOS['pendiente'];
     const fecha = d.creadoEn
       ? new Date(d.creadoEn).toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'})
