@@ -262,7 +262,82 @@ input[type=file]{display:none}
 <!-- API Azure -->
 <script>
 const API_INT = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
+
+let tokenValidado = null;
+let tokenDocId    = null;
+
+async function validarToken(){
+  const codigo = (document.getElementById('token-input').value || '').trim().toUpperCase();
+  const err    = document.getElementById('token-err');
+  const btn    = document.getElementById('btn-validar-token');
+
+  if(!codigo){ err.textContent='Please enter your access code'; err.style.display='block'; return; }
+  err.style.display = 'none';
+  btn.textContent = '⏳ Verifying...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_INT}/api/tokens/validar/${encodeURIComponent(codigo)}`);
+    if(!res.ok){
+      const e = await res.json().catch(()=>({}));
+      throw new Error(e.detail || 'Code not found');
+    }
+    const t = await res.json();
+    tokenDocId    = codigo;
+    tokenValidado = { codigo, ...t };
+
+    if(t.tipo && t.tipo !== 'internacional'){
+      err.textContent = 'This code is for the national form.';
+      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false;
+      return;
+    }
+
+    document.getElementById('token-gate').style.display    = 'none';
+    document.getElementById('progress-bar').style.display  = 'flex';
+    document.getElementById('form-wrapper').style.display  = 'block';
+
+    if(t.empresa){ const f = document.getElementById('razon_social'); if(f && !f.value) f.value = t.empresa; }
+    if(t.email)  { const f = document.getElementById('email_solicitante'); if(f) f.value = t.email; }
+
+  } catch(e){
+    err.textContent = e.message || 'Code not found. Please check and try again.';
+    err.style.display = 'block';
+    btn.textContent = 'Verify access →'; btn.disabled = false;
+  }
+}
 </script>
+<!-- pdf-lib: generar PDF dinámico -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<!-- PDF.js: renderizar PDF en canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+.mx-checkbox-wrap {
+  display:flex;align-items:flex-start;gap:1rem;
+  padding:1.2rem 1.4rem;border-radius:10px;cursor:pointer;
+  border:2px solid #DCE3EA;background:#F4F6F8;
+  transition:border-color 0.2s,background 0.2s;
+  user-select:none;
+}
+.mx-checkbox-wrap:hover { border-color:#002B4F; }
+.mx-checkbox-wrap.checked {
+  border-color:#002B4F !important;
+  background:#E8F0F8 !important;
+}
+.mx-checkbox-box {
+  flex-shrink:0;width:28px;height:28px;border-radius:6px;
+  border:2.5px solid #9CA3AF;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;margin-top:1px;
+}
+.mx-checkbox-wrap.checked .mx-checkbox-box {
+  background:#002B4F;border-color:#002B4F;
+}
+.mx-checkbox-box svg { opacity:0; transition:opacity 0.15s; }
+.mx-checkbox-wrap.checked .mx-checkbox-box svg { opacity:1; }
+.mx-checkbox-text {
+  font-size:0.9rem;line-height:1.65;color:#1A2A3A;font-weight:500;
+}
+</style>
 </head>
 <body>
 
@@ -580,55 +655,31 @@ const API_INT = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
           <p style="font-size:0.84rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
             Please read the full document. Once you reach the end, you will be able to accept the declaration.
           </p>
+          <!-- PDF viewer — iframe directo -->
           <div id="mpd-pdf-container" style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#f8f8f8">
-            <iframe
-              id="mpd-pdf-frame"
-              src="Declaracion_MPD_Clientes_Nacional.pdf"
-              style="width:100%;height:480px;border:none;display:block"
-              title="MPD Declaration">
-              <p>Your browser cannot display the PDF.
-                <a href="Declaracion_MPD_Clientes_Nacional.pdf" target="_blank">Open it here</a>
-              </p>
-            </iframe>
+            <iframe src="https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D" style="width:100%;height:520px;border:none;display:block;background:#fff" title="MPD Declaration"></iframe>
           </div>
           <div id="mpd-accept-area" style="opacity:0.4;pointer-events:none;transition:opacity 0.4s">
-            <label style="display:flex;align-items:flex-start;gap:0.7rem;cursor:pointer;padding:0.9rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px">
-              <input type="checkbox" id="acepta_mpd" style="width:18px;height:18px;margin-top:0.1rem;flex-shrink:0;accent-color:#002B4F" onchange="onMpdCheck(this)"/>
-              <span style="font-size:0.86rem;line-height:1.5;color:var(--fg)">
-                I have read and accept the Multi-X Prevention Model Declaration. I declare that the information provided is truthful and commit to complying with the established requirements. <span class="req">*</span>
+            <div class="mx-checkbox-wrap" id="mpd-cb-label" onclick="toggleMpdCb()">
+              <div class="mx-checkbox-box">
+                <svg width="16" height="16" viewBox="0 0 16 16"><polyline points="3,8 7,12 13,4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <span class="mx-checkbox-text">
+                He leído y acepto la Declaración de Modelo de Prevención de Delitos. Declaro que la información es verídica y me comprometo a cumplir con los requisitos establecidos. <span style="color:#E8523A">*</span>
               </span>
-            </label>
-          </div>
-          <p id="mpd-scroll-hint" style="font-size:0.76rem;color:var(--muted);margin-top:0.5rem;text-align:center">
-            📄 Scroll to the end of the document to enable acceptance
-          </p>
-          <input type="hidden" id="doc_mpd" value="mpd-accepted" />
-        </div>
-
-        <!-- Declaration -->
-        <div class="card" style="background:rgba(232,82,58,0.03);border-color:rgba(232,82,58,0.15)">
-          <div class="section-label">✍️ Final Declaration</div>
-          <p style="font-size:0.85rem;color:var(--fg);line-height:1.75">
-            I hereby declare that the information provided in this form is true and accurate, and I acknowledge my obligation to report any changes thereto. I affirm that all my activities are conducted in full compliance with applicable international legal standards.<br/><br/>
-            <strong>Furthermore, I declare that I am not included in any international sanctions lists (including, but not limited to, OFAC, UN, and EU).</strong>
-          </p>
-          <div class="form-grid" style="margin-top:1.2rem">
-            <div class="form-group">
-              <label>Client Representative Name <span class="req">*</span></label>
-              <input type="text" id="firma_nombre" placeholder="Full name" />
-            </div>
-            <div class="form-group">
-              <label>Tax ID / Passport <span class="req">*</span></label>
-              <input type="text" id="firma_taxid" placeholder="ID number" />
+              <input type="checkbox" id="acepta_mpd" style="display:none"/>
             </div>
           </div>
-          <div class="form-group" style="margin-top:0.8rem">
-            <label style="display:flex;align-items:flex-start;gap:0.7rem;cursor:pointer;padding:0.9rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px">
-              <input type="checkbox" id="acepta_declaracion" style="width:18px;height:18px;margin-top:0.1rem;flex-shrink:0;accent-color:#002B4F" />
-              <span style="font-size:0.86rem;line-height:1.5;color:var(--fg)">
-                I accept and confirm the declaration above. I declare that all information is accurate and I commit to reporting any changes. <span class="req">*</span>
+          <div class="form-group" style="margin-top:1rem">
+            <div class="mx-checkbox-wrap" id="decl-cb-label" onclick="toggleDeclCb()">
+              <div class="mx-checkbox-box">
+                <svg width="16" height="16" viewBox="0 0 16 16"><polyline points="3,8 7,12 13,4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <span class="mx-checkbox-text">
+                I accept and confirm the declaration above. I declare that all information is accurate and I commit to reporting any changes. <span style="color:#E8523A">*</span>
               </span>
-            </label>
+              <input type="checkbox" id="acepta_declaracion" style="display:none"/>
+            </div>
           </div>
         </div>
 
@@ -685,295 +736,39 @@ function toast(msg, type='ok'){
   setTimeout(()=>t.className='toast',3000);
 }
 
-// ── MPD PDF scroll detector ───────────────────────────────────
+// ── MPD PDF dinámico con pdf-lib ─────────────────────────────
 let mpdScrolled = false;
+const PDF_SRC = 'https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D';
 
-function initMpdScroll(){
-  const frame = document.getElementById('mpd-pdf-frame');
-  const area  = document.getElementById('mpd-accept-area');
-  const hint  = document.getElementById('mpd-scroll-hint');
-  if(!frame) return;
-
-  function habilitar(){
-    if(mpdScrolled) return;
-    mpdScrolled = true;
-    if(area){ area.style.opacity = '1'; area.style.pointerEvents = 'auto'; }
-    if(hint){ hint.style.display = 'none'; }
-  }
-
-  frame.addEventListener('load', () => { setTimeout(habilitar, 8000); });
-  frame.addEventListener('error', habilitar);
-  if(frame.complete || frame.contentDocument) { setTimeout(habilitar, 8000); }
+async function initMpdScroll(){
+  // PDF ya visible — solo habilitar checkbox
+  mpdScrolled = true;
+  const area = document.getElementById('mpd-accept-area');
+  const hint = document.getElementById('mpd-scroll-hint');
+  if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
+  if(hint) hint.style.display='none';
 }
 
-function onMpdCheck(cb){
-  if(!mpdScrolled){
-    cb.checked = false;
-    toast('Scroll to the end of the document first', 'err');
-  }
+function toggleMpdCb(){
+  const cb    = document.getElementById('acepta_mpd');
+  const label = document.getElementById('mpd-cb-label');
+  if(!cb || !label) return;
+
+  cb.checked = !cb.checked;
+  label.classList.toggle('checked', cb.checked);
 }
 
-function goStep(n){
-  document.querySelectorAll('.section').forEach((s,i)=>{
-    s.classList.toggle('active', i === n-1);
-  });
-  if(n === 4) initMpdScroll();
-  document.querySelectorAll('.step').forEach((s,i)=>{
-    s.classList.remove('active','done');
-    if(i < n-1) s.classList.add('done');
-    if(i === n-1) s.classList.add('active');
-  });
-  document.querySelectorAll('.nav-item').forEach((s,i)=>{
-    s.classList.toggle('active', i === n-1);
-  });
-  currentStep = n;
-  window.scrollTo({top:0,behavior:'smooth'});
+function toggleDeclCb(){
+  const cb    = document.getElementById('acepta_declaracion');
+  const label = document.getElementById('decl-cb-label');
+  if(!cb || !label) return;
+  cb.checked = !cb.checked;
+  label.classList.toggle('checked', cb.checked);
 }
 
-function validateStep(n){
-  if(n===1){
-    const fields = ['fecha','taxid','razon_social','pais','region','ciudad','direccion','celular','email_solicitante'];
-    let ok = true;
-    fields.forEach(id=>{
-      const el = document.getElementById(id);
-      if(!el.value.trim()){el.classList.add('error');ok=false;}
-      else el.classList.remove('error');
-    });
-    if(!document.querySelector('input[name="tipo_persona"]:checked')){toast('Select the client type','err');return false;}
-    if(!ok){toast('Please complete all required fields','err');return false;}
-  }
-  if(n===2){
-    const fields = ['rl1_nombre','rl1_taxid','rl1_cargo'];
-    let ok = true;
-    fields.forEach(id=>{
-      const el = document.getElementById(id);
-      if(!el.value.trim()){el.classList.add('error');ok=false;}
-      else el.classList.remove('error');
-    });
-    if(!ok){toast('Complete Legal Representative N°1 data','err');return false;}
-  }
-  if(n===3){
-    const fields = ['cob_nombre','cob_cargo','cob_email','cob_celular','com_nombre','com_cargo','com_email','com_celular'];
-    let ok = true;
-    fields.forEach(id=>{
-      const el = document.getElementById(id);
-      if(!el.value.trim()){el.classList.add('error');ok=false;}
-      else el.classList.remove('error');
-    });
-    if(!ok){toast('Complete all contact fields','err');return false;}
-  }
-  if(n===4){
-    if(!document.getElementById('doc_vigencia').files.length){toast('Attach the Certificate of Good Standing','err');return false;}
-    if(!document.getElementById('acepta_mpd')?.checked){toast('You must accept the MPD Declaration','err');return false;}
-    if(!document.getElementById('firma_nombre').value.trim()){toast('Enter the representative name','err');return false;}
-    if(!document.getElementById('acepta_declaracion').checked){toast('You must accept the final declaration','err');return false;}
-  }
-  return true;
-}
+function onMpdCheck(cb){ /* legacy */ }
+function updateDeclCb(cb){ /* legacy */ }
 
-function nextStep(n){
-  if(!validateStep(n)) return;
-  if(n < TOTAL) goStep(n+1);
-}
-function prevStep(n){
-  if(n > 1) goStep(n-1);
-}
-
-function togglePersona(el){
-  const lbl = document.getElementById('taxid-label');
-  if(el.value==='Individual') lbl.innerHTML='Tax ID / Passport Number <span class="req">*</span>';
-  else lbl.innerHTML='Registration Number <span class="req">*</span>';
-}
-
-function handleFile(docId, inputId, nameId, cardId){
-  const file = document.getElementById(inputId).files[0];
-  if(file){
-    document.getElementById(nameId).textContent = '✓ ' + file.name;
-    document.getElementById(cardId).classList.add('has-file');
-  }
-}
-
-function submitForm(){
-  if(!validateStep(4)) return;
-  document.getElementById('form-wrapper').style.display='none';
-  document.getElementById('progress-bar').style.display='none';
-  document.getElementById('success-screen').classList.add('show');
-  toast('Application submitted successfully!','ok');
-}
-
-// ═══════════════════════════════════════════════════════════════
-// TOKEN VALIDATION + FIREBASE SUBMIT — INTERNACIONAL
-// ═══════════════════════════════════════════════════════════════
-const POWER_AUTOMATE_WEBHOOK = (
-  document.querySelector('meta[name="pa-webhook"]')?.content || ''
-).trim().replace('__PA_WEBHOOK__','');
-
-let tokenValidado = null;
-let tokenDocId    = null;
-
-// fbIntReady eliminado — API Azure no requiere inicialización
-function _unused_placeholder(){
-  return new Promise(resolve => {
-    resolve();
-  });
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  const params   = new URLSearchParams(window.location.search);
-  const tokenUrl = params.get('token');
-  const gate     = document.getElementById('token-gate');
-  const progress = document.getElementById('progress-bar');
-  const formWrap = document.getElementById('form-wrapper');
-
-  if(tokenUrl){
-    gate.style.display = 'flex';
-    progress.style.display = 'none';
-    formWrap.style.display = 'none';
-    document.getElementById('token-input').value = tokenUrl.toUpperCase();
-    setTimeout(() => validarToken(), 500);
-  } else {
-    gate.style.display = 'flex';
-    progress.style.display = 'none';
-    formWrap.style.display = 'none';
-  }
-
-  // Pre-fill today's date
-  const fechaField = document.getElementById('fecha');
-  if(fechaField && !fechaField.value){
-    fechaField.value = new Date().toISOString().slice(0,10);
-  }
-});
-
-async function validarToken(){
-  const codigo = (document.getElementById('token-input').value || '').trim().toUpperCase();
-  const err    = document.getElementById('token-err');
-  const btn    = document.getElementById('btn-validar-token');
-
-  if(!codigo){ err.textContent='Please enter your access code'; err.style.display='block'; return; }
-  err.style.display = 'none';
-  btn.textContent = '⏳ Verifying...';
-  btn.disabled = true;
-
-  try {
-    const t = await (async () => {
-      const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/tokens/validar/${encodeURIComponent(codigo)}`);
-      if(!res.ok){
-        const e = await res.json().catch(()=>({}));
-        throw new Error(e.detail || 'Error ' + res.status);
-      }
-      return res.json();
-    })();
-    tokenDocId = codigo;
-    tokenValidado = { codigo, ...t };
-    if(t.tipo && t.tipo !== 'internacional'){
-      err.textContent = 'This code is for the National form, not International.';
-      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
-    }
-    document.getElementById('token-gate').style.display    = 'none';
-    document.getElementById('progress-bar').style.display  = 'flex';
-    document.getElementById('form-wrapper').style.display  = 'block';
-    if(t.email){
-      const ef = document.getElementById('email_solicitante');
-      if(ef) ef.value = t.email;
-    }
-    if(t.empresa){
-      const rf = document.getElementById('razon_social');
-      if(rf && !rf.value) rf.value = t.empresa;
-    }
-  } catch(e){
-    err.textContent = e.message || 'Error verifying: ' + e.message;
-    err.style.display = 'block';
-  }
-  btn.textContent = 'Verify access →'; btn.disabled = false;
-}
-
-// ── Submit real — API Azure ───────────────────────────────────
-async function enviarSolicitud(){
-  if(!validateStep(4)) return;
-
-  const btn = document.querySelector('.btn.btn-navy[onclick="enviarSolicitud()"]');
-  if(btn){ btn.disabled = true; btn.textContent = '⏳ Submitting...'; }
-
-  try {
-    const g = id => (document.getElementById(id)?.value || '').trim();
-    const radio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
-
-    const form = new FormData();
-    form.append('token',           tokenDocId || '');
-    form.append('tipo_formulario', 'internacional');
-    form.append('fecha_formulario',g('fecha'));
-    form.append('tipo_persona',    radio('tipo_persona'));
-    form.append('taxid',           g('taxid'));
-    form.append('razon_social',    g('razon_social'));
-    form.append('pais',            g('pais'));
-    form.append('region',          g('region'));
-    form.append('ciudad',          g('ciudad'));
-    form.append('direccion',       g('direccion'));
-    form.append('celular',         g('celular'));
-    form.append('telefono',        g('telefono'));
-    form.append('email_solicitante', g('email_solicitante'));
-    form.append('rl1_nombre',      g('rl1_nombre'));
-    form.append('rl1_taxid',       g('rl1_taxid'));
-    form.append('rl1_cargo',       g('rl1_cargo'));
-    form.append('rl2_nombre',      g('rl2_nombre'));
-    form.append('rl2_taxid',       g('rl2_taxid'));
-    form.append('rl2_cargo',       g('rl2_cargo'));
-    form.append('s1_nombre',       g('s1_nombre'));
-    form.append('s1_taxid',        g('s1_taxid'));
-    form.append('s2_nombre',       g('s2_nombre'));
-    form.append('s2_taxid',        g('s2_taxid'));
-    form.append('cob_nombre',      g('cob_nombre'));
-    form.append('cob_cargo',       g('cob_cargo'));
-    form.append('cob_email',       g('cob_email'));
-    form.append('cob_celular',     g('cob_celular'));
-    form.append('com_nombre',      g('com_nombre'));
-    form.append('com_cargo',       g('com_cargo'));
-    form.append('com_email',       g('com_email'));
-    form.append('com_celular',     g('com_celular'));
-    form.append('firma_nombre',    g('firma_nombre'));
-    form.append('firma_taxid',     g('firma_taxid'));
-
-    const fileVig = document.getElementById('doc_vigencia').files[0];
-    if(fileVig) form.append('doc_vigencia', fileVig);
-    form.append('doc_mpd_aceptado', 'true');
-
-    toast('Submitting application...','ok');
-    const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/solicitudes/crear`, { method:'POST', body: form });
-    if(!res.ok){
-      const err = await res.json().catch(()=>({}));
-      throw new Error(err.detail || 'Error ' + res.status);
-    }
-    const data = await res.json();
-    const solicitudId = data.id;
-
-    if(POWER_AUTOMATE_WEBHOOK && POWER_AUTOMATE_WEBHOOK !== '__PA_WEBHOOK__'){
-      try {
-        await fetch(POWER_AUTOMATE_WEBHOOK, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            solicitudId, tipo:'internacional',
-            razonSocial: g('razon_social'), taxid: g('taxid'),
-            solicitante: g('email_solicitante'),
-            pais: g('pais'), ciudad: g('ciudad'),
-          })
-        });
-      } catch(e){ console.warn('Webhook unavailable:', e.message); }
-    }
-
-    document.getElementById('form-wrapper').style.display  = 'none';
-    document.getElementById('progress-bar').style.display  = 'none';
-    const screen = document.getElementById('success-screen');
-    screen.classList.add('show');
-    const idEl = document.getElementById('solicitud-id-display');
-    if(idEl) idEl.textContent = solicitudId;
-    const copyBtn = document.getElementById('btn-copiar-id');
-    if(copyBtn) copyBtn.setAttribute('data-id', solicitudId);
-
-  } catch(e){
-    toast('Error submitting: ' + e.message, 'err');
-    if(btn){ btn.disabled = false; btn.textContent = 'Submit Application ✓'; }
-  }
-}
 
 </script>
 </body>
