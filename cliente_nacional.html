@@ -380,13 +380,7 @@ const API_NAC = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
               <label>Fecha <span class="req">*</span></label>
               <input type="date" id="fecha" />
             </div>
-            <div class="form-group">
-              <label>Tipo de empresa <span class="req">*</span></label>
-              <div class="radio-group">
-                <label class="radio-opt"><input type="radio" name="tipo_empresa" value="Chilena" onchange="syncTipoEmpresa(this)"> Chilena</label>
-                <label class="radio-opt"><input type="radio" name="tipo_empresa" value="Internacional" onchange="syncTipoEmpresa(this)"> Internacional</label>
-              </div>
-            </div>
+
           </div>
 
           <div class="form-grid" style="margin-top:0.5rem">
@@ -730,22 +724,39 @@ const API_NAC = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
           <div class="file-name" id="doc1-name"></div>
         </div>
 
-        <!-- Declaración MPD -->
-        <div class="card doc-card" id="doc2-card">
-          <div class="doc-icon">⚖️</div>
-          <div class="doc-title">Declaración Modelo de Prevención de Delitos (MPD) <span class="req">*</span></div>
-          <div class="doc-desc">
-            Descarga el documento, complétalo con firma del representante legal y adjúntalo aquí.
+        <!-- Declaración MPD — PDF viewer + checkbox -->
+        <div class="card" id="doc2-card" style="padding:1.5rem">
+          <div class="section-label">⚖️ Declaración Modelo de Prevención de Delitos (MPD) <span class="req">*</span></div>
+          <p style="font-size:0.84rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
+            Lee el documento completo. Al llegar al final podrás aceptar la declaración.
+          </p>
+
+          <!-- PDF viewer -->
+          <div id="mpd-pdf-container" style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#f8f8f8">
+            <iframe
+              id="mpd-pdf-frame"
+              src="Declaracion_MPD_Clientes_Nacional.pdf"
+              style="width:100%;height:480px;border:none;display:block"
+              title="Declaración MPD">
+              <p>Tu navegador no puede mostrar el PDF.
+                <a href="Declaracion_MPD_Clientes_Nacional.pdf" target="_blank">Ábrelo aquí</a>
+              </p>
+            </iframe>
           </div>
-          <a href="Declaracion_MPD_Clientes_Nacional.docx" download class="download-btn">
-            ⬇️ Descargar Declaración MPD
-          </a>
-          <br/>
-          <label class="file-input-label" for="doc_mpd">
-            📎 Adjuntar Declaración MPD firmada
-          </label>
-          <input type="file" id="doc_mpd" accept=".pdf,.jpg,.jpeg,.png,.docx" onchange="handleFile('doc2','doc_mpd','doc2-name','doc2-card')" />
-          <div class="file-name" id="doc2-name"></div>
+
+          <!-- Scroll detector + checkbox aceptar -->
+          <div id="mpd-accept-area" style="opacity:0.4;pointer-events:none;transition:opacity 0.4s">
+            <label style="display:flex;align-items:flex-start;gap:0.7rem;cursor:pointer;padding:0.9rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px">
+              <input type="checkbox" id="acepta_mpd" style="width:18px;height:18px;margin-top:0.1rem;flex-shrink:0;accent-color:var(--navy)" onchange="onMpdCheck(this)"/>
+              <span style="font-size:0.86rem;line-height:1.5;color:var(--fg)">
+                He leído y acepto la Declaración de Modelo de Prevención de Delitos. Declaro que la información es verídica y me comprometo a cumplir con los requisitos establecidos. <span class="req">*</span>
+              </span>
+            </label>
+          </div>
+          <p id="mpd-scroll-hint" style="font-size:0.76rem;color:var(--muted);margin-top:0.5rem;text-align:center">
+            📄 Desplázate hasta el final del documento para habilitar la aceptación
+          </p>
+          <input type="hidden" id="doc_mpd" value="mpd-aceptado" />
         </div>
 
         <!-- Declaración -->
@@ -766,9 +777,11 @@ const API_NAC = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
             </div>
           </div>
           <div class="form-group" style="margin-top:0.8rem">
-            <label class="radio-opt" style="width:fit-content;gap:0.6rem">
-              <input type="checkbox" id="acepta_declaracion" style="width:auto;padding:0;border:none;background:none;box-shadow:none" />
-              <span style="font-size:0.86rem">Acepto y confirmo la declaración anterior <span class="req">*</span></span>
+            <label style="display:flex;align-items:flex-start;gap:0.7rem;cursor:pointer;padding:0.9rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px">
+              <input type="checkbox" id="acepta_declaracion" style="width:18px;height:18px;margin-top:0.1rem;flex-shrink:0;accent-color:var(--navy)" />
+              <span style="font-size:0.86rem;line-height:1.5;color:var(--fg)">
+                Acepto y confirmo la declaración anterior. Declaro que toda la información es correcta y me comprometo a informar cualquier cambio. <span class="req">*</span>
+              </span>
             </label>
           </div>
         </div>
@@ -822,10 +835,54 @@ function toast(msg, type='ok'){
   setTimeout(()=>t.className='toast',3000);
 }
 
+// ── MPD PDF scroll detector ───────────────────────────────────
+let mpdScrolled = false;
+
+function initMpdScroll(){
+  const frame = document.getElementById('mpd-pdf-frame');
+  const area  = document.getElementById('mpd-accept-area');
+  const hint  = document.getElementById('mpd-scroll-hint');
+  if(!frame) return;
+
+  // Habilitar después de 10 segundos si el iframe no reporta scroll
+  // (los iframes cross-origin no permiten detectar scroll interno)
+  // Alternativa: habilitar cuando el usuario haya estado 8s en el paso
+  let timer = null;
+
+  function habilitar(){
+    if(mpdScrolled) return;
+    mpdScrolled = true;
+    if(area){ area.style.opacity = '1'; area.style.pointerEvents = 'auto'; }
+    if(hint){ hint.style.display = 'none'; }
+  }
+
+  // Timer de 8 segundos — tiempo razonable para leer el documento
+  frame.addEventListener('load', () => {
+    timer = setTimeout(habilitar, 8000);
+  });
+
+  // También habilitar si el iframe falla (PDF no disponible)
+  frame.addEventListener('error', habilitar);
+
+  // Si el PDF ya cargó
+  if(frame.complete || frame.contentDocument) {
+    timer = setTimeout(habilitar, 8000);
+  }
+}
+
+function onMpdCheck(cb){
+  // Solo permite marcar si scrolled
+  if(!mpdScrolled){
+    cb.checked = false;
+    toast('Desplázate hasta el final del documento primero', 'err');
+  }
+}
+
 function goStep(n){
   document.querySelectorAll('.section').forEach((s,i)=>{
     s.classList.toggle('active', i === n-1);
   });
+  if(n === 5) initMpdScroll();
   document.querySelectorAll('.step').forEach((s,i)=>{
     s.classList.remove('active','done');
     if(i < n-1) s.classList.add('done');
@@ -847,7 +904,6 @@ function validateStep(n){
       if(!el.value.trim()){el.classList.add('error');ok=false;}
       else el.classList.remove('error');
     });
-    if(!document.querySelector('input[name="tipo_empresa"]:checked')){toast('Selecciona el tipo de empresa','err');return false;}
     if(!document.querySelector('input[name="tipo_persona"]:checked')){toast('Selecciona el tipo de persona','err');return false;}
     if(!ok){toast('Completa todos los campos obligatorios','err');return false;}
   }
@@ -879,7 +935,7 @@ function validateStep(n){
   }
   if(n===5){
     if(!document.getElementById('doc_vigencia').files.length){toast('Adjunta el Certificado de Vigencia','err');return false;}
-    if(!document.getElementById('doc_mpd').files.length){toast('Adjunta la Declaración MPD firmada','err');return false;}
+    if(!document.getElementById('acepta_mpd')?.checked){toast('Debes aceptar la Declaración MPD','err');return false;}
     if(!document.getElementById('firma_nombre').value.trim()){toast('Ingresa el nombre del representante','err');return false;}
     if(!document.getElementById('acepta_declaracion').checked){toast('Debes aceptar la declaración final','err');return false;}
   }
@@ -1064,7 +1120,6 @@ async function enviarSolicitud(){
     form.append('token',           tokenDocId || '');
     form.append('tipo_formulario', 'nacional');
     form.append('fecha_formulario',g('fecha'));
-    form.append('tipo_empresa',    radio('tipo_empresa'));
     form.append('tipo_persona',    radio('tipo_persona'));
     form.append('rut',             g('rut'));
     form.append('razon_social',    g('razon_social'));
@@ -1104,9 +1159,9 @@ async function enviarSolicitud(){
 
     // Archivos
     const fileVig = document.getElementById('doc_vigencia').files[0];
-    const fileMpd = document.getElementById('doc_mpd').files[0];
     if(fileVig) form.append('doc_vigencia', fileVig);
-    if(fileMpd) form.append('doc_mpd',      fileMpd);
+    // doc_mpd: aceptación digital, no requiere archivo
+    form.append('doc_mpd_aceptado', 'true');
 
     toast('Enviando solicitud...','ok');
     const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/solicitudes/crear`, { method:'POST', body: form });
