@@ -425,11 +425,12 @@ tr:hover td{background:rgba(0,43,79,0.02);cursor:pointer}
 <!-- API Azure -->
 <script>
 const API_REV = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
-let jwtTokenRev = null;
+window._jwtRev = null;
 
 async function apiFetchRev(path, opts={}) {
   const headers = { 'Content-Type': 'application/json', ...opts.headers };
-  if(jwtTokenRev) headers['Authorization'] = 'Bearer ' + jwtTokenRev;
+  const tok = window._jwtRev;
+  if(tok) headers['Authorization'] = 'Bearer ' + tok;
   const res = await fetch(API_REV + path, { ...opts, headers });
   if(!res.ok) {
     const err = await res.json().catch(()=>({}));
@@ -643,7 +644,7 @@ async function acceder(){
       method: 'POST',
       body: JSON.stringify({ usuario, password: pass })
     });
-    jwtTokenRev = data.token;
+    window._jwtRev = data.token;
     // Guardar token para SSO
     const sesionData = { usuario: data.usuario, nombre: data.nombre, rol: data.rol, token: data.token };
     localStorage.setItem('mx_sesion', JSON.stringify(sesionData));
@@ -682,7 +683,7 @@ function cerrarSesion(){
   if(unsubscribe) unsubscribe();
   sesionIniciada = false;
   sesionUsuario  = null;
-  jwtTokenRev    = null;
+  window._jwtRev = null;
   solicitudes    = [];
   localStorage.removeItem('mx_sesion');
   document.getElementById('gate-wrapper').style.display = 'flex';
@@ -1151,12 +1152,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if(stored){
       const user = JSON.parse(stored);
       const rolesPermitidos = ['superadmin','admin','comercial','legal'];
-      if(user && rolesPermitidos.includes(user.rol)){
-        areaActual    = ROL_AREA[user.rol] || 'comercial';
-        sesionUsuario = user;
-        if(user.token) jwtTokenRev = user.token;
-        _iniciarSesion();
-        return;
+      if(user && user.token && rolesPermitidos.includes(user.rol)){
+        // Verificar que el token es válido antes de usarlo
+        const testRes = await fetch(API_REV + '/api/usuarios/me', {
+          headers: { 'Authorization': 'Bearer ' + user.token }
+        });
+        if(testRes.ok){
+          areaActual    = ROL_AREA[user.rol] || 'comercial';
+          sesionUsuario = user;
+          window._jwtRev = user.token;
+          _iniciarSesion();
+          return;
+        } else {
+          // Token expirado — limpiar localStorage
+          localStorage.removeItem('mx_sesion');
+        }
       }
     }
   } catch(e){ console.warn('SSO error:', e); }
