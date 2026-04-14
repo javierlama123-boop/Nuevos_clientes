@@ -952,15 +952,6 @@ async function initMpdScroll(){
 }
 
 
-  } else {
-    box.style.background   = '#fff';
-    box.style.borderColor  = 'var(--border)';
-    if(check) check.style.opacity = '0';
-    if(label){ label.style.borderColor = 'var(--border)'; label.style.background = 'var(--bg)'; }
-  }
-}
-
-
 
 function goStep(n){
   document.querySelectorAll('.section').forEach((s,i)=>{
@@ -1289,6 +1280,14 @@ async function enviarSolicitud(){
 }
 
 
+function habilitarMpdManual(){
+  mpdScrolled = true;
+  const area = document.getElementById('mpd-accept-area');
+  const hint = document.getElementById('mpd-scroll-hint');
+  if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
+  if(hint){ hint.style.display='none'; }
+}
+
 function toggleMpdCb(){
   const cb    = document.getElementById('acepta_mpd');
   const label = document.getElementById('mpd-cb-label');
@@ -1309,8 +1308,10 @@ function toggleDeclCb(){
   label.classList.toggle('checked', cb.checked);
 }
 
-function onMpdCheck(cb){ /* legacy — no usado */ }
-function updateDeclCb(cb){ /* legacy — no usado */ }
+function onMpdCheck(cb){ /* legacy */ }
+function updateDeclCb(cb){ /* legacy */ }
+
+
 </script>
 </body>
 </html>
