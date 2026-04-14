@@ -961,7 +961,6 @@ function validateStep(n){
       if(!el.value.trim()){el.classList.add('error');ok=false;}
       else el.classList.remove('error');
     });
-    if(!document.querySelector('input[name="tipo_empresa"]:checked')){toast('Selecciona el tipo de empresa','err');return false;}
     if(!document.querySelector('input[name="tipo_persona"]:checked')){toast('Selecciona el tipo de persona','err');return false;}
     if(!ok){toast('Completa todos los campos obligatorios','err');return false;}
   }
