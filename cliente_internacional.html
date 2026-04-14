@@ -259,42 +259,9 @@ input[type=file]{display:none}
 
 <meta name="pa-webhook" content="__PA_WEBHOOK__"/>
 
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, doc, getDoc, updateDoc, getDocs, query, where
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
-  authDomain: "clientesnuevos-e915d.firebaseapp.com",
-  projectId: "clientesnuevos-e915d",
-  storageBucket: "clientesnuevos-e915d.firebasestorage.app",
-  messagingSenderId: "366989020508",
-  appId: "1:366989020508:web:686a320c65ba1fc02bc599"
-};
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-window._db_int    = db;
-window._addDoc_i  = addDoc;
-window._updateDoc_i = updateDoc;
-window._col_i     = collection;
-window._doc_ref_i = doc;
-window._getDocs_i = getDocs;
-window._query_i   = query;
-window._where_i   = where;
-window._getDoc_i  = getDoc;
-window._fbInt     = true;
-// Aliases para compatibilidad
-window.FS_getDocs = getDocs;
-window.FS_col     = collection;
-window.FS_query   = query;
-window.FS_where   = where;
-window.FS_add     = addDoc;
-window.FS_update  = updateDoc;
-window.FS_doc     = doc;
-window.DB         = db;
-document.dispatchEvent(new Event('fb-int-ready'));
+<!-- API Azure -->
+<script>
+const API_INT = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
 </script>
 </head>
 <body>
@@ -800,8 +767,6 @@ function submitForm(){
 // ═══════════════════════════════════════════════════════════════
 // TOKEN VALIDATION + FIREBASE SUBMIT — INTERNACIONAL
 // ═══════════════════════════════════════════════════════════════
-const CLOUDINARY_CLOUD  = 'dh6nbakdn';
-const CLOUDINARY_PRESET = 'capacitaciones_unsigned';
 const POWER_AUTOMATE_WEBHOOK = (
   document.querySelector('meta[name="pa-webhook"]')?.content || ''
 ).trim().replace('__PA_WEBHOOK__','');
@@ -809,10 +774,10 @@ const POWER_AUTOMATE_WEBHOOK = (
 let tokenValidado = null;
 let tokenDocId    = null;
 
-function fbIntReady(){
+// fbIntReady eliminado — API Azure no requiere inicialización
+function _unused_placeholder(){
   return new Promise(resolve => {
-    if(window._fbInt){ resolve(); return; }
-    document.addEventListener('fb-int-ready', resolve, { once:true });
+    resolve();
   });
 }
 
@@ -853,38 +818,23 @@ async function validarToken(){
   btn.disabled = true;
 
   try {
-    await fbIntReady();
-    const docSnap = await window._getDoc_i(window._doc_ref_i(window._db_int,'invitaciones_clientes', codigo));
-
-    if(!docSnap.exists()){
-      err.textContent = 'Code not found. Please check and try again.';
-      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
-    }
-    const t = docSnap.data();
+    const t = await (async () => {
+      const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/tokens/validar/${encodeURIComponent(codigo)}`);
+      if(!res.ok){
+        const e = await res.json().catch(()=>({}));
+        throw new Error(e.detail || 'Error ' + res.status);
+      }
+      return res.json();
+    })();
     tokenDocId = codigo;
-
-    if(t.estado === 'revocado'){
-      err.textContent = 'This code has been revoked. Contact the commercial team.';
-      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
-    }
-    if(t.estado === 'usado'){
-      err.textContent = 'This code has already been used for a previous application.';
-      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
-    }
-    if(new Date(t.expiraEn) < new Date()){
-      err.textContent = 'This code has expired. Please request a new one.';
-      err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
-    }
+    tokenValidado = { codigo, ...t };
     if(t.tipo && t.tipo !== 'internacional'){
       err.textContent = 'This code is for the National form, not International.';
       err.style.display = 'block'; btn.textContent = 'Verify access →'; btn.disabled = false; return;
     }
-
-    tokenValidado = { id: docSnap.id, ...t };
     document.getElementById('token-gate').style.display    = 'none';
     document.getElementById('progress-bar').style.display  = 'flex';
     document.getElementById('form-wrapper').style.display  = 'block';
-
     if(t.email){
       const ef = document.getElementById('email_solicitante');
       if(ef) ef.value = t.email;
@@ -894,22 +844,13 @@ async function validarToken(){
       if(rf && !rf.value) rf.value = t.empresa;
     }
   } catch(e){
-    err.textContent = 'Error verifying: ' + e.message;
+    err.textContent = e.message || 'Error verifying: ' + e.message;
     err.style.display = 'block';
   }
   btn.textContent = 'Verify access →'; btn.disabled = false;
 }
 
-async function subirCloudinary(file, folder){
-  const form = new FormData();
-  form.append('file', file);
-  form.append('upload_preset', CLOUDINARY_PRESET);
-  form.append('folder', folder);
-  const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/auto/upload`, { method:'POST', body:form });
-  if(!r.ok) throw new Error('Cloudinary error: ' + r.status);
-  return await r.json();
-}
-
+// ── Submit real — API Azure ───────────────────────────────────
 async function enviarSolicitud(){
   if(!validateStep(4)) return;
 
@@ -917,81 +858,67 @@ async function enviarSolicitud(){
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Submitting...'; }
 
   try {
-    await fbIntReady();
-    toast('Uploading documents...','ok');
-
-    const fileVig = document.getElementById('doc_vigencia').files[0];
-    const fileMpd = document.getElementById('doc_mpd').files[0];
-    const [resVig, resMpd] = await Promise.all([
-      subirCloudinary(fileVig, 'clientes/internacionales/vigencia'),
-      subirCloudinary(fileMpd, 'clientes/internacionales/mpd'),
-    ]);
-
     const g = id => (document.getElementById(id)?.value || '').trim();
     const radio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
 
-    const datos = {
-      tipo_formulario:    'internacional',
-      estado:             'pendiente',
-      aprobacion_legal:    'pendiente',
-      aprobacion_comercial: null,
-      creadoEn:           new Date().toISOString(),
-      tokenUsado:         tokenValidado?.codigo || null,
-      // Step 1
-      fecha:          g('fecha'),
-      tipo_persona:   radio('tipo_persona'),
-      taxid:          g('taxid'),
-      razon_social:   g('razon_social'),
-      pais:           g('pais'),
-      region:         g('region'),
-      ciudad:         g('ciudad'),
-      direccion:      g('direccion'),
-      celular:        g('celular'),
-      telefono:       g('telefono'),
-      email_solicitante: g('email_solicitante'),
-      // Step 2
-      rl1_nombre: g('rl1_nombre'), rl1_taxid: g('rl1_taxid'), rl1_cargo: g('rl1_cargo'),
-      rl2_nombre: g('rl2_nombre'), rl2_taxid: g('rl2_taxid'), rl2_cargo: g('rl2_cargo'),
-      s1_nombre:  g('s1_nombre'),  s1_taxid:  g('s1_taxid'),
-      s2_nombre:  g('s2_nombre'),  s2_taxid:  g('s2_taxid'),
-      // Step 3
-      cob_nombre: g('cob_nombre'), cob_cargo: g('cob_cargo'), cob_email: g('cob_email'), cob_celular: g('cob_celular'),
-      com_nombre: g('com_nombre'), com_cargo: g('com_cargo'), com_email: g('com_email'), com_celular: g('com_celular'),
-      // Step 4
-      firma_nombre: g('firma_nombre'), firma_taxid: g('firma_taxid'),
-      // Docs
-      doc_vigencia: { url: resVig.secure_url, publicId: resVig.public_id, nombre: fileVig.name },
-      doc_mpd:      { url: resMpd.secure_url, publicId: resMpd.public_id, nombre: fileMpd.name },
-      aprobaciones: {},
-      pdfUrl:       null,
-      flowRunId:    null,
-      motivoRechazo: null,
-    };
+    const form = new FormData();
+    form.append('token',           tokenDocId || '');
+    form.append('tipo_formulario', 'internacional');
+    form.append('fecha_formulario',g('fecha'));
+    form.append('tipo_persona',    radio('tipo_persona'));
+    form.append('taxid',           g('taxid'));
+    form.append('razon_social',    g('razon_social'));
+    form.append('pais',            g('pais'));
+    form.append('region',          g('region'));
+    form.append('ciudad',          g('ciudad'));
+    form.append('direccion',       g('direccion'));
+    form.append('celular',         g('celular'));
+    form.append('telefono',        g('telefono'));
+    form.append('email_solicitante', g('email_solicitante'));
+    form.append('rl1_nombre',      g('rl1_nombre'));
+    form.append('rl1_taxid',       g('rl1_taxid'));
+    form.append('rl1_cargo',       g('rl1_cargo'));
+    form.append('rl2_nombre',      g('rl2_nombre'));
+    form.append('rl2_taxid',       g('rl2_taxid'));
+    form.append('rl2_cargo',       g('rl2_cargo'));
+    form.append('s1_nombre',       g('s1_nombre'));
+    form.append('s1_taxid',        g('s1_taxid'));
+    form.append('s2_nombre',       g('s2_nombre'));
+    form.append('s2_taxid',        g('s2_taxid'));
+    form.append('cob_nombre',      g('cob_nombre'));
+    form.append('cob_cargo',       g('cob_cargo'));
+    form.append('cob_email',       g('cob_email'));
+    form.append('cob_celular',     g('cob_celular'));
+    form.append('com_nombre',      g('com_nombre'));
+    form.append('com_cargo',       g('com_cargo'));
+    form.append('com_email',       g('com_email'));
+    form.append('com_celular',     g('com_celular'));
+    form.append('firma_nombre',    g('firma_nombre'));
+    form.append('firma_taxid',     g('firma_taxid'));
 
-    toast('Saving application...','ok');
-    const ref = await window._addDoc_i(window._col_i(window._db_int, 'solicitudes_clientes'), datos);
-    const solicitudId = ref.id;
+    const fileVig = document.getElementById('doc_vigencia').files[0];
+    const fileMpd = document.getElementById('doc_mpd').files[0];
+    if(fileVig) form.append('doc_vigencia', fileVig);
+    if(fileMpd) form.append('doc_mpd',      fileMpd);
 
-    if(tokenDocId){
-      await window._updateDoc_i(window._doc_ref_i(window._db_int, 'invitaciones_clientes', tokenDocId), {
-        estado: 'usado', solicitudId
-      });
+    toast('Submitting application...','ok');
+    const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/solicitudes/crear`, { method:'POST', body: form });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.detail || 'Error ' + res.status);
     }
+    const data = await res.json();
+    const solicitudId = data.id;
 
     if(POWER_AUTOMATE_WEBHOOK && POWER_AUTOMATE_WEBHOOK !== '__PA_WEBHOOK__'){
       try {
         await fetch(POWER_AUTOMATE_WEBHOOK, {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
+          method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({
             solicitudId, tipo:'internacional',
-            razonSocial: datos.razon_social,
-            taxid: datos.taxid,
-            solicitante: datos.email_solicitante,
-            pais: datos.pais, ciudad: datos.ciudad,
-            celular: datos.celular,
-            rl1: `${datos.rl1_nombre} (${datos.rl1_cargo})`,
-            creadoEn: datos.creadoEn,
+            razonSocial: g('razon_social'), taxid: g('taxid'),
+            solicitante: g('email_solicitante'),
+            pais: g('pais'), ciudad: g('ciudad'),
           })
         });
       } catch(e){ console.warn('Webhook unavailable:', e.message); }
