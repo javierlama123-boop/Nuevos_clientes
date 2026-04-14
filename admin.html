@@ -181,47 +181,8 @@ tr:hover td{background:rgba(0,43,79,0.025)}
 }
 </style>
 
-<!-- API Azure + Firebase para tokens -->
-<!-- Firebase compat (no module — evita conflictos de scope) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script>
-(function(){
-  const cfg = {
-    apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
-    authDomain: "clientesnuevos-e915d.firebaseapp.com",
-    projectId: "clientesnuevos-e915d",
-    storageBucket: "clientesnuevos-e915d.firebasestorage.app",
-    messagingSenderId: "366989020508",
-    appId: "1:366989020508:web:686a320c65ba1fc02bc599"
-  };
-  firebase.initializeApp(cfg);
-  const db = firebase.firestore();
-
-  window.FB_READY   = true;
-  window.FS_setDoc  = (ref, data) => ref.set(data);
-  window.FS_update  = (ref, data) => ref.update(data);
-  window.FS_getDocs = (q) => q.get();
-  window.FS_snap    = (q, cb, err) => q.onSnapshot(snap => {
-    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    cb({ docs: snap.docs });
-  }, err);
-
-  // Helpers para construir refs/queries
-  window.FS_col     = (db_, col) => db.collection(col);
-  window.FS_doc     = (db_, col, id) => db.collection(col).doc(id);
-  window.FS_query   = (ref, ...constraints) => {
-    let q = ref;
-    constraints.forEach(c => { if(c) q = c(q); });
-    return q;
-  };
-  window.FS_orderBy = (field, dir='asc') => (ref) => ref.orderBy(field, dir);
-  window.FS_add     = (ref, data) => ref.add(data);
-  window.DB         = db;
-
-  document.dispatchEvent(new Event('fb-ready'));
-})();
-</script>
+<!-- API Azure -->
+<!-- Firebase eliminado — 100% API Azure -->
 <script>
 const API = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
 let jwtToken = null;
@@ -443,15 +404,7 @@ let sortField = 'creadoEn', sortAsc = false;
 let detalleAbierto = null;
 let ultimoLink = '';
 
-// ═══════════════════════════════════════════
-// FIREBASE HELPER (para tokens)
-// ═══════════════════════════════════════════
-function fbOk(){
-  return new Promise(r => {
-    if(window.FB_READY){ r(); return; }
-    document.addEventListener('fb-ready', r, { once:true });
-  });
-}
+// Firebase eliminado — API Azure
 
 // ═══════════════════════════════════════════
 // LOGIN / LOGOUT
@@ -507,8 +460,8 @@ function iniciarApp(user){
 }
 
 function logout(){
-  if(unsub) unsub();
-  if(unsubTokens) unsubTokens();
+  if(_monitorInterval) clearInterval(_monitorInterval);
+  if(_tokensInterval)  clearInterval(_tokensInterval);
   sesion = null; solicitudes = []; solFilt = [];
   jwtToken = null;
   localStorage.removeItem('mx_sesion');
@@ -541,16 +494,20 @@ function irA(vista){
 // ═══════════════════════════════════════════
 let _monitorInterval = null;
 async function arrancarMonitor(){
-  await fbOk();
-  const q = window.FS_query(window.FS_col(window.DB,'solicitudes_clientes'), window.FS_orderBy('creadoEn','desc'));
-  unsub = window.FS_snap(q, snap => {
-    solicitudes = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+  await cargarSolicitudes();
+  _monitorInterval = setInterval(cargarSolicitudes, 30000);
+}
+
+async function cargarSolicitudes(){
+  try {
+    const data = await apiFetch('/api/solicitudes');
+    solicitudes = data;
     actualizarKPIs();
     filtrar();
-  }, e => {
+  } catch(e){
     document.getElementById('monitor-tbody').innerHTML =
       `<tr><td colspan="9" class="empty" style="color:var(--danger)">Error: ${e.message}</td></tr>`;
-  });
+  }
 }
 
 function actualizarKPIs(){
@@ -747,15 +704,15 @@ function genCodigo(){
 let _tokensInterval = null;
 
 async function arrancarTokens(){
-  await fbOk();
-  const q = window.FS_query(window.FS_col(window.DB,'invitaciones_clientes'), window.FS_orderBy('creadoEn','desc'));
-  window.FS_snap(q, snap => {
-    renderTokens(snap.docs.map(d=>({id:d.id,...d.data()})));
-  });
+  await cargarTokens();
+  _tokensInterval = setInterval(cargarTokens, 30000);
 }
 
 async function cargarTokens(){
-  // usada por polling — no aplica en Firebase
+  try {
+    const data = await apiFetch('/api/tokens/listar');
+    renderTokens(data);
+  } catch(e){ console.warn('Error tokens:', e.message); }
 }
 
 async function generarToken(){
@@ -763,23 +720,19 @@ async function generarToken(){
   const empresa = document.getElementById('tf-empresa').value.trim();
   const email   = document.getElementById('tf-email').value.trim();
   const horas   = parseInt(document.getElementById('tf-horas').value)||48;
-  const ahora   = new Date();
-  const expira  = new Date(ahora.getTime()+horas*3600000);
-  const codigo  = genCodigo();
   try{
-    await fbOk();
-    await window.FS_setDoc(window.FS_doc(window.DB,'invitaciones_clientes', codigo),{
-      codigo, tipo, empresa:empresa||null, email:email||null,
-      creadoEn:ahora.toISOString(), expiraEn:expira.toISOString(),
-      horas, estado:'activo', solicitudId:null
+    const data = await apiFetch('/api/tokens/crear', {
+      method: 'POST',
+      body: JSON.stringify({ tipo, empresa: empresa||null, email: email||null, horas })
     });
     const base = window.location.href.replace(/admin\.html.*$/,'').replace(/\/$/,'');
     const form = tipo==='nacional'?'cliente_nacional.html':'cliente_internacional.html';
-    ultimoLink = `${base}/${form}?token=${encodeURIComponent(codigo)}`;
+    ultimoLink = `${base}/${form}?token=${encodeURIComponent(data.codigo)}`;
     document.getElementById('token-result-link').textContent = ultimoLink;
     document.getElementById('token-result').style.display = 'block';
     document.getElementById('tf-empresa').value='';
     document.getElementById('tf-email').value='';
+    await cargarTokens();
     toast('✅ Link generado','ok');
   } catch(e){ toast('Error: '+e.message,'err'); }
 }
@@ -788,10 +741,13 @@ function copiarLink(){
   navigator.clipboard.writeText(ultimoLink).then(()=>toast('📋 Link copiado','ok'));
 }
 
-async function revocarToken(id){
+async function revocarToken(codigo){
   if(!confirm('¿Revocar este acceso?')) return;
-  await window.FS_update(window.FS_doc(window.DB,'invitaciones_clientes',id),{estado:'revocado'});
-  toast('Token revocado','info');
+  try {
+    await apiFetch(`/api/tokens/revocar/${codigo}`, { method: 'PATCH' });
+    await cargarTokens();
+    toast('Token revocado','info');
+  } catch(e){ toast('Error: '+e.message,'err'); }
 }
 
 async function copiarLinkToken(codigo, tipo){
