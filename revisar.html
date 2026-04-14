@@ -1138,7 +1138,7 @@ function filtrarVista(tipo){
 }
 
 // ── Enter en gate ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const gu = document.getElementById('gate-usuario');
   const gp = document.getElementById('gate-pass');
   if(gu) gu.addEventListener('keydown', e => { if(e.key==='Enter') gp?.focus(); });
