@@ -355,13 +355,7 @@ const API_INT = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
               <label>Date <span class="req">*</span></label>
               <input type="date" id="fecha" />
             </div>
-            <div class="form-group">
-              <label>Type of Company <span class="req">*</span></label>
-              <div class="radio-group">
-                <label class="radio-opt"><input type="radio" name="tipo_empresa" value="Chilean"> Chilean</label>
-                <label class="radio-opt"><input type="radio" name="tipo_empresa" value="International"> International</label>
-              </div>
-            </div>
+
           </div>
 
           <div class="form-grid" style="margin-top:0.5rem">
@@ -580,22 +574,35 @@ const API_INT = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
           <div class="file-name" id="doc1-name"></div>
         </div>
 
-        <!-- MPD Declaration -->
-        <div class="card doc-card" id="doc2-card">
-          <div class="doc-icon">⚖️</div>
-          <div class="doc-title">Multi-X Prevention Model Declaration <span class="req">*</span></div>
-          <div class="doc-desc">
-            Download the document below, complete it with the legal representative's signature, and upload it here.
+        <!-- MPD Declaration — PDF viewer + checkbox -->
+        <div class="card" id="doc2-card" style="padding:1.5rem">
+          <div class="section-label">⚖️ Multi-X Prevention Model Declaration <span class="req">*</span></div>
+          <p style="font-size:0.84rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
+            Please read the full document. Once you reach the end, you will be able to accept the declaration.
+          </p>
+          <div id="mpd-pdf-container" style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#f8f8f8">
+            <iframe
+              id="mpd-pdf-frame"
+              src="Declaracion_MPD_Clientes_Nacional.pdf"
+              style="width:100%;height:480px;border:none;display:block"
+              title="MPD Declaration">
+              <p>Your browser cannot display the PDF.
+                <a href="Declaracion_MPD_Clientes_Nacional.pdf" target="_blank">Open it here</a>
+              </p>
+            </iframe>
           </div>
-          <a href="Declaracion_MPD_Clientes_Nacional.docx" download class="download-btn">
-            ⬇️ Download MPD Declaration
-          </a>
-          <br/>
-          <label class="file-input-label" for="doc_mpd">
-            📎 Upload signed MPD Declaration
-          </label>
-          <input type="file" id="doc_mpd" accept=".pdf,.jpg,.jpeg,.png,.docx" onchange="handleFile('doc2','doc_mpd','doc2-name','doc2-card')" />
-          <div class="file-name" id="doc2-name"></div>
+          <div id="mpd-accept-area" style="opacity:0.4;pointer-events:none;transition:opacity 0.4s">
+            <label style="display:flex;align-items:flex-start;gap:0.7rem;cursor:pointer;padding:0.9rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px">
+              <input type="checkbox" id="acepta_mpd" style="width:18px;height:18px;margin-top:0.1rem;flex-shrink:0;accent-color:#002B4F" onchange="onMpdCheck(this)"/>
+              <span style="font-size:0.86rem;line-height:1.5;color:var(--fg)">
+                I have read and accept the Multi-X Prevention Model Declaration. I declare that the information provided is truthful and commit to complying with the established requirements. <span class="req">*</span>
+              </span>
+            </label>
+          </div>
+          <p id="mpd-scroll-hint" style="font-size:0.76rem;color:var(--muted);margin-top:0.5rem;text-align:center">
+            📄 Scroll to the end of the document to enable acceptance
+          </p>
+          <input type="hidden" id="doc_mpd" value="mpd-accepted" />
         </div>
 
         <!-- Declaration -->
@@ -616,9 +623,11 @@ const API_INT = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
             </div>
           </div>
           <div class="form-group" style="margin-top:0.8rem">
-            <label class="radio-opt" style="width:fit-content;gap:0.6rem">
-              <input type="checkbox" id="acepta_declaracion" style="width:auto;padding:0;border:none;background:none;box-shadow:none" />
-              <span style="font-size:0.86rem">I accept and confirm the declaration above <span class="req">*</span></span>
+            <label style="display:flex;align-items:flex-start;gap:0.7rem;cursor:pointer;padding:0.9rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px">
+              <input type="checkbox" id="acepta_declaracion" style="width:18px;height:18px;margin-top:0.1rem;flex-shrink:0;accent-color:#002B4F" />
+              <span style="font-size:0.86rem;line-height:1.5;color:var(--fg)">
+                I accept and confirm the declaration above. I declare that all information is accurate and I commit to reporting any changes. <span class="req">*</span>
+              </span>
             </label>
           </div>
         </div>
@@ -676,10 +685,39 @@ function toast(msg, type='ok'){
   setTimeout(()=>t.className='toast',3000);
 }
 
+// ── MPD PDF scroll detector ───────────────────────────────────
+let mpdScrolled = false;
+
+function initMpdScroll(){
+  const frame = document.getElementById('mpd-pdf-frame');
+  const area  = document.getElementById('mpd-accept-area');
+  const hint  = document.getElementById('mpd-scroll-hint');
+  if(!frame) return;
+
+  function habilitar(){
+    if(mpdScrolled) return;
+    mpdScrolled = true;
+    if(area){ area.style.opacity = '1'; area.style.pointerEvents = 'auto'; }
+    if(hint){ hint.style.display = 'none'; }
+  }
+
+  frame.addEventListener('load', () => { setTimeout(habilitar, 8000); });
+  frame.addEventListener('error', habilitar);
+  if(frame.complete || frame.contentDocument) { setTimeout(habilitar, 8000); }
+}
+
+function onMpdCheck(cb){
+  if(!mpdScrolled){
+    cb.checked = false;
+    toast('Scroll to the end of the document first', 'err');
+  }
+}
+
 function goStep(n){
   document.querySelectorAll('.section').forEach((s,i)=>{
     s.classList.toggle('active', i === n-1);
   });
+  if(n === 4) initMpdScroll();
   document.querySelectorAll('.step').forEach((s,i)=>{
     s.classList.remove('active','done');
     if(i < n-1) s.classList.add('done');
@@ -701,7 +739,6 @@ function validateStep(n){
       if(!el.value.trim()){el.classList.add('error');ok=false;}
       else el.classList.remove('error');
     });
-    if(!document.querySelector('input[name="tipo_empresa"]:checked')){toast('Select the type of company','err');return false;}
     if(!document.querySelector('input[name="tipo_persona"]:checked')){toast('Select the client type','err');return false;}
     if(!ok){toast('Please complete all required fields','err');return false;}
   }
@@ -727,7 +764,7 @@ function validateStep(n){
   }
   if(n===4){
     if(!document.getElementById('doc_vigencia').files.length){toast('Attach the Certificate of Good Standing','err');return false;}
-    if(!document.getElementById('doc_mpd').files.length){toast('Attach the signed MPD Declaration','err');return false;}
+    if(!document.getElementById('acepta_mpd')?.checked){toast('You must accept the MPD Declaration','err');return false;}
     if(!document.getElementById('firma_nombre').value.trim()){toast('Enter the representative name','err');return false;}
     if(!document.getElementById('acepta_declaracion').checked){toast('You must accept the final declaration','err');return false;}
   }
@@ -897,9 +934,8 @@ async function enviarSolicitud(){
     form.append('firma_taxid',     g('firma_taxid'));
 
     const fileVig = document.getElementById('doc_vigencia').files[0];
-    const fileMpd = document.getElementById('doc_mpd').files[0];
     if(fileVig) form.append('doc_vigencia', fileVig);
-    if(fileMpd) form.append('doc_mpd',      fileMpd);
+    form.append('doc_mpd_aceptado', 'true');
 
     toast('Submitting application...','ok');
     const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/solicitudes/crear`, { method:'POST', body: form });
