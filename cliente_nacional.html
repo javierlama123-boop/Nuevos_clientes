@@ -878,12 +878,18 @@ async function initMpdScroll(){
 
     // Coordenadas aproximadas de los campos (ajustar si es necesario)
     // Coordenadas calibradas con PyMuPDF (A4: 595x842 pts)
+    // Coordenadas calibradas con análisis real del PDF (595x842 pts)
+    // Razón Social label termina ~175pt → texto desde 180
+    // Rut label termina ~85pt → texto desde 95
+    // fecha label termina ~335pt → texto desde 340
+    // Yo,…… ocupa línea completa → nombre en línea siguiente x=57, y=681
+    // Cédula de Identidad N° → rut en misma línea x=390, y=694
     const campos = [
-      { text: razonSocial, x: 175, y: 755, size: 10 },  // Razón Social: ____
-      { text: rut,         x: 75,  y: 735, size: 10 },  // Rut: ____
-      { text: fecha,       x: 290, y: 735, size: 10 },  // fecha: ____
-      { text: firmaNombre, x: 57,  y: 696, size: 10 },  // Yo,...
-      { text: firmaRut,    x: 390, y: 696, size: 10 },  // Cédula de Identidad N°
+      { text: razonSocial, x: 180, y: 753, size: 10 },
+      { text: rut,         x: 95,  y: 733, size: 10 },
+      { text: fecha,       x: 340, y: 733, size: 10 },
+      { text: firmaNombre, x: 57,  y: 681, size: 10 },
+      { text: firmaRut,    x: 390, y: 694, size: 10 },
     ];
 
     campos.forEach(c => {
