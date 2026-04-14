@@ -438,7 +438,7 @@ function iniciarApp(user){
   const rol = ROL[user.rol] || ROL.monitor;
 
   // Guardar sesión para SSO con revisar.html
-  localStorage.setItem('mx_sesion', JSON.stringify({ usuario: user.usuario, nombre: user.nombre, rol: user.rol }));
+  localStorage.setItem('mx_sesion', JSON.stringify({ usuario: user.usuario, nombre: user.nombre, rol: user.rol, token: jwtToken }));
 
   document.getElementById('login-gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
