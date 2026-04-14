@@ -285,6 +285,10 @@ input[type=file]{display:none}
 <script>
 const API_NAC = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
 </script>
+<!-- pdf-lib: generar PDF dinámico -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<!-- PDF.js: renderizar PDF en canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 
@@ -731,17 +735,13 @@ const API_NAC = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
             Lee el documento completo. Al llegar al final podrás aceptar la declaración.
           </p>
 
-          <!-- PDF viewer -->
-          <div id="mpd-pdf-container" style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#f8f8f8">
-            <iframe
-              id="mpd-pdf-frame"
-              src="https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D"
-              style="width:100%;height:480px;border:none;display:block"
-              title="Declaración MPD">
-              <p>Tu navegador no puede mostrar el PDF.
-                <a href="https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D" target="_blank">Ábrelo aquí</a>
-              </p>
-            </iframe>
+          <!-- PDF viewer dinámico con datos del formulario -->
+          <div id="mpd-loading" style="text-align:center;padding:2rem;color:var(--muted);font-size:0.85rem">
+            ⏳ Generando documento con tus datos...
+          </div>
+          <div id="mpd-pdf-container" style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#f8f8f8;display:none">
+            <canvas id="mpd-pdf-canvas" style="width:100%;display:block"></canvas>
+            <div id="mpd-pdf-pages" style="overflow-y:auto;max-height:500px;padding:1rem;background:#525659"></div>
           </div>
 
           <!-- Scroll detector + checkbox aceptar -->
@@ -835,38 +835,107 @@ function toast(msg, type='ok'){
   setTimeout(()=>t.className='toast',3000);
 }
 
-// ── MPD PDF scroll detector ───────────────────────────────────
+// ── MPD PDF dinámico con pdf-lib ─────────────────────────────
 let mpdScrolled = false;
+const PDF_SRC = 'https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D';
 
-function initMpdScroll(){
-  const frame = document.getElementById('mpd-pdf-frame');
-  const area  = document.getElementById('mpd-accept-area');
-  const hint  = document.getElementById('mpd-scroll-hint');
-  if(!frame) return;
+async function initMpdScroll(){
+  const area    = document.getElementById('mpd-accept-area');
+  const hint    = document.getElementById('mpd-scroll-hint');
+  const loading = document.getElementById('mpd-loading');
+  const pagesDiv= document.getElementById('mpd-pdf-pages');
+  const container = document.getElementById('mpd-pdf-container');
 
-  // Habilitar después de 10 segundos si el iframe no reporta scroll
-  // (los iframes cross-origin no permiten detectar scroll interno)
-  // Alternativa: habilitar cuando el usuario haya estado 8s en el paso
-  let timer = null;
+  // Obtener datos del formulario
+  const g = id => (document.getElementById(id)?.value || '').trim();
+  const razonSocial = g('razon_social') || '________________________________';
+  const rut         = g('rut')  || '______________';
+  const fecha       = g('fecha') ? new Date(g('fecha')).toLocaleDateString('es-CL') : new Date().toLocaleDateString('es-CL');
+  const firmaNombre = g('firma_nombre') || '…………………………………………………………………………';
+  const firmaRut    = g('firma_rut')   || '………………………………';
 
-  function habilitar(){
-    if(mpdScrolled) return;
-    mpdScrolled = true;
-    if(area){ area.style.opacity = '1'; area.style.pointerEvents = 'auto'; }
-    if(hint){ hint.style.display = 'none'; }
-  }
+  try {
+    // Cargar PDF original desde Blob
+    const pdfBytes = await fetch(PDF_SRC).then(r => r.arrayBuffer());
 
-  // Timer de 8 segundos — tiempo razonable para leer el documento
-  frame.addEventListener('load', () => {
-    timer = setTimeout(habilitar, 8000);
-  });
+    // Usar pdf-lib para rellenar los campos
+    const { PDFDocument, rgb, StandardFonts } = PDFLib;
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const font   = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const page   = pdfDoc.getPages()[0];
+    const { height } = page.getSize();
 
-  // También habilitar si el iframe falla (PDF no disponible)
-  frame.addEventListener('error', habilitar);
+    // Coordenadas aproximadas de los campos (ajustar si es necesario)
+    const campos = [
+      { text: razonSocial, x: 200, y: height - 118, size: 10 },
+      { text: rut,         x: 75,  y: height - 136, size: 10 },
+      { text: fecha,       x: 310, y: height - 136, size: 10 },
+      { text: firmaNombre, x: 54,  y: height - 163, size: 10 },
+      { text: firmaRut,    x: 54,  y: height - 181, size: 10 },
+    ];
 
-  // Si el PDF ya cargó
-  if(frame.complete || frame.contentDocument) {
-    timer = setTimeout(habilitar, 8000);
+    campos.forEach(c => {
+      page.drawText(c.text, {
+        x: c.x, y: c.y,
+        size: c.size || 10,
+        font,
+        color: rgb(0.1, 0.1, 0.5),
+        maxWidth: 350,
+      });
+    });
+
+    const pdfRellenado = await pdfDoc.save();
+
+    // Mostrar con PDF.js
+    if(loading) loading.style.display = 'none';
+    if(container) container.style.display = 'block';
+
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const blob = new Blob([pdfRellenado], { type: 'application/pdf' });
+    const url  = URL.createObjectURL(blob);
+    const pdf  = await pdfjsLib.getDocument(url).promise;
+
+    pagesDiv.innerHTML = '';
+    for(let i = 1; i <= pdf.numPages; i++){
+      const pg     = await pdf.getPage(i);
+      const vp     = pg.getViewport({ scale: 1.5 });
+      const canvas = document.createElement('canvas');
+      canvas.width  = vp.width;
+      canvas.height = vp.height;
+      canvas.style.cssText = 'width:100%;display:block;margin-bottom:4px;background:#fff';
+      pagesDiv.appendChild(canvas);
+      await pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    }
+
+    // Detectar scroll hasta el final
+    pagesDiv.addEventListener('scroll', () => {
+      const atBottom = pagesDiv.scrollHeight - pagesDiv.scrollTop - pagesDiv.clientHeight < 60;
+      if(atBottom && !mpdScrolled){
+        mpdScrolled = true;
+        if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
+        if(hint) hint.style.display='none';
+      }
+    });
+
+    // Fallback: habilitar tras 30 segundos aunque no haga scroll
+    setTimeout(()=>{
+      if(!mpdScrolled){
+        mpdScrolled=true;
+        if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
+        if(hint) hint.style.display='none';
+      }
+    }, 30000);
+
+  } catch(e){
+    console.warn('Error generando PDF:', e);
+    // Fallback: mostrar PDF original en iframe
+    if(loading) loading.innerHTML = '<iframe src="' + PDF_SRC + '" style="width:100%;height:500px;border:none"></iframe>';
+    setTimeout(()=>{
+      if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
+      if(hint) hint.style.display='none';
+    }, 8000);
   }
 }
 
