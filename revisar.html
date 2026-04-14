@@ -634,13 +634,8 @@ async function acceder(){
   err.style.display = 'none';
   btn.disabled = true; btn.textContent = 'Verificando...';
 
-  // Verificar superadmin ANTES de esperar Firebase (no requiere red)
-  if(usuario === SUPERADMIN_REV.usuario && pass === SUPERADMIN_REV.password){
-    areaActual    = 'superadmin';
-    sesionUsuario = SUPERADMIN_REV;
-    _iniciarSesion();
-    return;
-  }
+  // Superadmin — obtener JWT desde la API igual que los demás usuarios
+  // (el superadmin hardcodeado también necesita token para las llamadas API)
 
   try {
     // Buscar en Firestore
@@ -741,7 +736,16 @@ async function cargarSolicitudes(){
     solicitudes = await apiFetchRev('/api/solicitudes');
     actualizarStats();
     renderTabla();
-  } catch(e){ console.warn('Error cargando solicitudes:', e.message); }
+  } catch(e){
+    console.warn('Error cargando solicitudes:', e.message);
+    const el = document.getElementById('tabla-body') || document.getElementById('solicitudes-body');
+    if(el) el.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#dc2626">
+      Error cargando datos: ${e.message}<br>
+      <button onclick="cargarSolicitudes()" style="margin-top:0.5rem;padding:0.4rem 0.9rem;border-radius:6px;border:1px solid #dc2626;background:transparent;color:#dc2626;cursor:pointer">
+        Reintentar
+      </button>
+    </td></tr>`;
+  }
 }
 
 // ── Stats ────────────────────────────────────────────────────
