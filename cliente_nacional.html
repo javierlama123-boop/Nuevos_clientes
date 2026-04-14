@@ -808,13 +808,9 @@ async function validarToken(){
             Lee el documento completo. Al llegar al final podrás aceptar la declaración.
           </p>
 
-          <!-- PDF viewer dinámico con datos del formulario -->
-          <div id="mpd-loading" style="text-align:center;padding:2rem;color:var(--muted);font-size:0.85rem">
-            ⏳ Generando documento con tus datos...
-          </div>
-          <div id="mpd-pdf-container" style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#f8f8f8;display:none">
-            <canvas id="mpd-pdf-canvas" style="width:100%;display:block"></canvas>
-            <div id="mpd-pdf-pages" style="overflow-y:auto;max-height:500px;padding:1rem;background:#525659"></div>
+          <!-- PDF viewer — iframe directo -->
+          <div id="mpd-pdf-container" style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#f8f8f8">
+            <iframe src="https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D" style="width:100%;height:520px;border:none;display:block;background:#fff" title="Declaración MPD"></iframe>
           </div>
 
           <!-- Scroll detector + checkbox aceptar -->
@@ -898,19 +894,10 @@ let mpdScrolled = false;
 const PDF_SRC = 'https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D';
 
 async function initMpdScroll(){
-  const area    = document.getElementById('mpd-accept-area');
-  const hint    = document.getElementById('mpd-scroll-hint');
-  const loading = document.getElementById('mpd-loading');
-  const container = document.getElementById('mpd-pdf-container');
-  const pagesDiv= document.getElementById('mpd-pdf-pages');
-
-  // Mostrar PDF en iframe (sin fetch — evita CORS)
-  if(loading) loading.style.display = 'none';
-  if(container) container.style.display = 'block';
-  if(pagesDiv) pagesDiv.innerHTML = `<iframe src="https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D" style="width:100%;height:520px;border:none;display:block;background:#fff"></iframe>`;
-
-  // Habilitar checkbox inmediatamente
+  // PDF ya visible — solo habilitar checkbox
   mpdScrolled = true;
+  const area = document.getElementById('mpd-accept-area');
+  const hint = document.getElementById('mpd-scroll-hint');
   if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
   if(hint) hint.style.display='none';
 }
