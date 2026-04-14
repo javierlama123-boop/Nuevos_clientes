@@ -289,6 +289,34 @@ const API_NAC = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <!-- PDF.js: renderizar PDF en canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+.mx-checkbox-wrap {
+  display:flex;align-items:flex-start;gap:1rem;
+  padding:1.2rem 1.4rem;border-radius:10px;cursor:pointer;
+  border:2px solid #DCE3EA;background:#F4F6F8;
+  transition:border-color 0.2s,background 0.2s;
+  user-select:none;
+}
+.mx-checkbox-wrap:hover { border-color:#002B4F; }
+.mx-checkbox-wrap.checked {
+  border-color:#002B4F !important;
+  background:#E8F0F8 !important;
+}
+.mx-checkbox-box {
+  flex-shrink:0;width:28px;height:28px;border-radius:6px;
+  border:2.5px solid #9CA3AF;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;margin-top:1px;
+}
+.mx-checkbox-wrap.checked .mx-checkbox-box {
+  background:#002B4F;border-color:#002B4F;
+}
+.mx-checkbox-box svg { opacity:0; transition:opacity 0.15s; }
+.mx-checkbox-wrap.checked .mx-checkbox-box svg { opacity:1; }
+.mx-checkbox-text {
+  font-size:0.9rem;line-height:1.65;color:#1A2A3A;font-weight:500;
+}
+</style>
 </head>
 <body>
 
@@ -746,53 +774,26 @@ const API_NAC = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsite
 
           <!-- Scroll detector + checkbox aceptar -->
           <div id="mpd-accept-area" style="opacity:0.4;pointer-events:none;transition:opacity 0.4s">
-            <label id="mpd-cb-label" style="display:flex;align-items:flex-start;gap:0.9rem;cursor:pointer;padding:1.1rem 1.2rem;background:var(--bg);border:2px solid var(--border);border-radius:10px;transition:border-color 0.2s,background 0.2s">
-              <span style="position:relative;flex-shrink:0;width:24px;height:24px;margin-top:0.05rem">
-                <input type="checkbox" id="acepta_mpd" onchange="onMpdCheck(this)" style="position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;margin:0;z-index:2"/>
-                <span id="mpd-cb-box" style="position:absolute;inset:0;border:2.5px solid var(--border);border-radius:5px;background:#fff;transition:all 0.2s;display:flex;align-items:center;justify-content:center">
-                  <svg id="mpd-cb-check" width="14" height="14" viewBox="0 0 14 14" style="opacity:0;transition:opacity 0.15s"><polyline points="2,7 6,11 12,3" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
+            <div class="mx-checkbox-wrap" id="mpd-cb-label" onclick="toggleMpdCb()">
+              <div class="mx-checkbox-box">
+                <svg width="16" height="16" viewBox="0 0 16 16"><polyline points="3,8 7,12 13,4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <span class="mx-checkbox-text">
+                He leído y acepto la Declaración de Modelo de Prevención de Delitos. Declaro que la información es verídica y me comprometo a cumplir con los requisitos establecidos. <span style="color:#E8523A">*</span>
               </span>
-              <span style="font-size:0.88rem;line-height:1.6;color:var(--fg);font-weight:500">
-                He leído y acepto la Declaración de Modelo de Prevención de Delitos. Declaro que la información es verídica y me comprometo a cumplir con los requisitos establecidos. <span class="req">*</span>
-              </span>
-            </label>
-          </div>
-          <p id="mpd-scroll-hint" style="font-size:0.76rem;color:var(--muted);margin-top:0.5rem;text-align:center">
-            📄 Desplázate hasta el final del documento para habilitar la aceptación
-          </p>
-          <input type="hidden" id="doc_mpd" value="mpd-aceptado" />
-        </div>
-
-        <!-- Declaración -->
-        <div class="card" style="background:rgba(0,43,79,0.03);border-color:rgba(0,43,79,0.15)">
-          <div class="section-label">✍️ Declaración Final</div>
-          <p style="font-size:0.85rem;color:var(--fg);line-height:1.75">
-            Declaro que la información consignada en este formulario es correcta, que soy responsable de reportar cualquier cambio en las mismas y afirmo que realizo todas mis actividades dentro de la normativa legal vigente de Chile.<br/><br/>
-            <strong>Declaro no estar incluido en listas de sanciones internacionales (OFAC, ONU, UE, etc.).</strong>
-          </p>
-          <div class="form-grid" style="margin-top:1.2rem">
-            <div class="form-group">
-              <label>Nombre Representante Cliente <span class="req">*</span></label>
-              <input type="text" id="firma_nombre" placeholder="Nombre completo" />
-            </div>
-            <div class="form-group">
-              <label>RUT Representante <span class="req">*</span></label>
-              <input type="text" id="firma_rut" placeholder="12.345.678-9" />
+              <input type="checkbox" id="acepta_mpd" style="display:none"/>
             </div>
           </div>
-          <div class="form-group" style="margin-top:0.8rem">
-            <label id="decl-cb-label" style="display:flex;align-items:flex-start;gap:0.9rem;cursor:pointer;padding:1.1rem 1.2rem;background:var(--bg);border:2px solid var(--border);border-radius:10px;transition:border-color 0.2s,background 0.2s">
-              <span style="position:relative;flex-shrink:0;width:24px;height:24px;margin-top:0.05rem">
-                <input type="checkbox" id="acepta_declaracion" onchange="updateDeclCb(this)" style="position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;margin:0;z-index:2"/>
-                <span id="decl-cb-box" style="position:absolute;inset:0;border:2.5px solid var(--border);border-radius:5px;background:#fff;transition:all 0.2s;display:flex;align-items:center;justify-content:center">
-                  <svg id="decl-cb-check" width="14" height="14" viewBox="0 0 14 14" style="opacity:0;transition:opacity 0.15s"><polyline points="2,7 6,11 12,3" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
+          <div class="form-group" style="margin-top:1rem">
+            <div class="mx-checkbox-wrap" id="decl-cb-label" onclick="toggleDeclCb()">
+              <div class="mx-checkbox-box">
+                <svg width="16" height="16" viewBox="0 0 16 16"><polyline points="3,8 7,12 13,4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <span class="mx-checkbox-text">
+                Acepto y confirmo la declaración anterior. Declaro que toda la información es correcta y me comprometo a informar cualquier cambio. <span style="color:#E8523A">*</span>
               </span>
-              <span style="font-size:0.88rem;line-height:1.6;color:var(--fg);font-weight:500">
-                Acepto y confirmo la declaración anterior. Declaro que toda la información es correcta y me comprometo a informar cualquier cambio. <span class="req">*</span>
-              </span>
-            </label>
+              <input type="checkbox" id="acepta_declaracion" style="display:none"/>
+            </div>
           </div>
         </div>
 
@@ -950,21 +951,7 @@ async function initMpdScroll(){
   }
 }
 
-function updateDeclCb(cb){
-  updateCb('acepta_declaracion','decl-cb-box','decl-cb-check','decl-cb-label','#002B4F');
-}
 
-function updateCb(cbId, boxId, checkId, labelId, color){
-  const cb    = document.getElementById(cbId);
-  const box   = document.getElementById(boxId);
-  const check = document.getElementById(checkId);
-  const label = document.getElementById(labelId);
-  if(!cb||!box) return;
-  if(cb.checked){
-    box.style.background   = color;
-    box.style.borderColor  = color;
-    if(check) check.style.opacity = '1';
-    if(label){ label.style.borderColor = color; label.style.background = color+'11'; }
   } else {
     box.style.background   = '#fff';
     box.style.borderColor  = 'var(--border)';
@@ -973,13 +960,7 @@ function updateCb(cbId, boxId, checkId, labelId, color){
   }
 }
 
-function onMpdCheck(cb){
-  // Solo permite marcar si scrolled
-  if(!mpdScrolled){
-    cb.checked = false;
-    toast('Desplázate hasta el final del documento primero', 'err');
-  }
-}
+
 
 function goStep(n){
   document.querySelectorAll('.section').forEach((s,i)=>{
@@ -1307,6 +1288,29 @@ async function enviarSolicitud(){
   }
 }
 
+
+function toggleMpdCb(){
+  const cb    = document.getElementById('acepta_mpd');
+  const label = document.getElementById('mpd-cb-label');
+  if(!cb || !label) return;
+  if(!cb.checked && !mpdScrolled){
+    toast('Desplázate hasta el final del documento primero', 'err');
+    return;
+  }
+  cb.checked = !cb.checked;
+  label.classList.toggle('checked', cb.checked);
+}
+
+function toggleDeclCb(){
+  const cb    = document.getElementById('acepta_declaracion');
+  const label = document.getElementById('decl-cb-label');
+  if(!cb || !label) return;
+  cb.checked = !cb.checked;
+  label.classList.toggle('checked', cb.checked);
+}
+
+function onMpdCheck(cb){ /* legacy — no usado */ }
+function updateDeclCb(cb){ /* legacy — no usado */ }
 </script>
 </body>
 </html>
