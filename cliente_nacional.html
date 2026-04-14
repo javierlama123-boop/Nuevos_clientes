@@ -281,33 +281,9 @@ input[type=file]{display:none}
 
 <meta name="pa-webhook" content="__PA_WEBHOOK__"/>
 
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, doc, getDoc, updateDoc, getDocs, query, where
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
-  authDomain: "clientesnuevos-e915d.firebaseapp.com",
-  projectId: "clientesnuevos-e915d",
-  storageBucket: "clientesnuevos-e915d.firebasestorage.app",
-  messagingSenderId: "366989020508",
-  appId: "1:366989020508:web:686a320c65ba1fc02bc599"
-};
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-window._db_nac    = db;
-window._addDoc    = addDoc;
-window._updateDoc = updateDoc;
-window._col       = collection;
-window._doc_ref   = doc;
-window._getDocs   = getDocs;
-window._query     = query;
-window._where     = where;
-window._getDoc_nac = getDoc;
-window._fbNac     = true;
-document.dispatchEvent(new Event('fb-nac-ready'));
+<!-- API Azure -->
+<script>
+const API_NAC = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
 </script>
 </head>
 <body>
@@ -960,21 +936,14 @@ function submitForm(){
 // ═══════════════════════════════════════════════════════════════
 // TOKEN VALIDATION + FIREBASE SUBMIT
 // ═══════════════════════════════════════════════════════════════
-const CLOUDINARY_CLOUD  = 'dh6nbakdn';
-const CLOUDINARY_PRESET = 'capacitaciones_unsigned';
 const POWER_AUTOMATE_WEBHOOK = (
   document.querySelector('meta[name="pa-webhook"]')?.content || ''
 ).trim().replace('__PA_WEBHOOK__','');
 
-let tokenValidado = null; // guardará el doc de Firestore del token
+let tokenValidado = null;
 let tokenDocId    = null;
 
-function fbNacReady(){
-  return new Promise(resolve => {
-    if(window._fbNac){ resolve(); return; }
-    document.addEventListener('fb-nac-ready', resolve, { once:true });
-  });
-}
+// fbNacReady eliminado — API Azure no requiere inicialización
 
 // ── Arranque: verificar si hay ?token= en la URL ─────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -1012,26 +981,30 @@ async function validarToken(){
   btn.disabled = true;
 
   try {
-    await fbNacReady();
-    const docSnap = await window._getDoc_nac(window._doc_ref(window._db_nac,'invitaciones_clientes', codigo));
-
-    if(!docSnap.exists()){
-      err.textContent = 'Código no encontrado. Verifica e intenta de nuevo.';
-      err.style.display = 'block';
-      btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+    try {
+      const t = await (async () => {
+        const res = await fetch(`${API_NAC}/api/tokens/validar/${encodeURIComponent(codigo)}`);
+        if(!res.ok){
+          const e = await res.json().catch(()=>({}));
+          throw new Error(e.detail || 'Error ' + res.status);
+        }
+        return res.json();
+      })();
+      tokenDocId = codigo;
+      tokenValidado = { codigo, ...t };
+      // continúa abajo con t.tipo
+      if(t.tipo && t.tipo !== 'nacional'){
+        err.textContent = 'Este código es para el formulario internacional.';
+        err.style.display = 'block'; btn.textContent = 'Verificar acceso →'; btn.disabled = false;
+        return;
+      }
+      // Token válido — mostrar formulario
+      document.getElementById('token-gate').style.display    = 'none';
+      document.getElementById('progress-bar').style.display  = 'flex';
+      document.getElementById('form-wrapper').style.display  = 'block';
       return;
-    }
-
-    const t = docSnap.data();
-    tokenDocId = codigo;
-
-    if(t.estado === 'revocado'){
-      err.textContent = 'Este código ha sido revocado. Contacta al equipo comercial.';
-      err.style.display = 'block'; btn.textContent = 'Verificar acceso →'; btn.disabled = false;
-      return;
-    }
-    if(t.estado === 'usado'){
-      err.textContent = 'Este código ya fue utilizado para una solicitud.';
+    } catch(e2){
+      err.textContent = e2.message || 'Código no encontrado. Verifica e intenta de nuevo.';
       err.style.display = 'block'; btn.textContent = 'Verificar acceso →'; btn.disabled = false;
       return;
     }
@@ -1075,18 +1048,7 @@ async function validarToken(){
   btn.textContent = 'Verificar acceso →'; btn.disabled = false;
 }
 
-// ── Subir archivo a Cloudinary ───────────────────────────────
-async function subirCloudinary(file, folder){
-  const form = new FormData();
-  form.append('file', file);
-  form.append('upload_preset', CLOUDINARY_PRESET);
-  form.append('folder', folder);
-  const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/auto/upload`, { method:'POST', body:form });
-  if(!r.ok) throw new Error('Error Cloudinary: ' + r.status);
-  return await r.json();
-}
-
-// ── Submit real ───────────────────────────────────────────────
+// ── Submit real — API Azure ───────────────────────────────────
 async function enviarSolicitud(){
   if(!validateStep(5)) return;
 
@@ -1094,77 +1056,68 @@ async function enviarSolicitud(){
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
 
   try {
-    await fbNacReady();
-
-    // 1. Subir documentos a Cloudinary
-    toast('Subiendo documentos...','ok');
-    const fileVig = document.getElementById('doc_vigencia').files[0];
-    const fileMpd = document.getElementById('doc_mpd').files[0];
-    const [resVig, resMpd] = await Promise.all([
-      subirCloudinary(fileVig, 'clientes/nacionales/vigencia'),
-      subirCloudinary(fileMpd, 'clientes/nacionales/mpd'),
-    ]);
-
-    // 2. Recopilar datos
     const g = id => (document.getElementById(id)?.value || '').trim();
     const radio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
 
-    const datos = {
-      tipo_formulario:    'nacional',
-      estado:             'pendiente',
-      aprobacion_legal:    'pendiente',
-      aprobacion_comercial: null,
-      creadoEn:           new Date().toISOString(),
-      tokenUsado:         tokenValidado?.codigo || null,
-      // Paso 1
-      fecha:          g('fecha'),
-      tipo_empresa:   radio('tipo_empresa'),
-      tipo_persona:   radio('tipo_persona'),
-      rut:            g('rut'),
-      razon_social:   g('razon_social'),
-      pais:           g('pais'),
-      region:         g('region'),
-      ciudad:         g('ciudad'),
-      direccion:      g('direccion'),
-      celular:        g('celular'),
-      telefono:       g('telefono'),
-      email_solicitante: g('email_solicitante'),
-      // Paso 2
-      rl1_nombre: g('rl1_nombre'), rl1_rut: g('rl1_rut'), rl1_cargo: g('rl1_cargo'),
-      rl2_nombre: g('rl2_nombre'), rl2_rut: g('rl2_rut'), rl2_cargo: g('rl2_cargo'),
-      s1_nombre:  g('s1_nombre'),  s1_rut:  g('s1_rut'),
-      s2_nombre:  g('s2_nombre'),  s2_rut:  g('s2_rut'),
-      // Paso 3
-      cob_nombre: g('cob_nombre'), cob_cargo: g('cob_cargo'), cob_email: g('cob_email'), cob_celular: g('cob_celular'),
-      com_nombre: g('com_nombre'), com_cargo: g('com_cargo'), com_email: g('com_email'), com_celular: g('com_celular'),
-      // Paso 4 MPD
-      mpd1_val: g('mpd1_val'), mpd2_val: g('mpd2_val'), mpd3_val: g('mpd3_val'),
-      mpd4a_val: g('mpd4a_val'), mpd4b_val: g('mpd4b_val'),
-      detalle_pep: g('detalle_pep'),
-      // Paso 5
-      firma_nombre: g('firma_nombre'), firma_rut: g('firma_rut'),
-      // Cloudinary docs
-      doc_vigencia: { url: resVig.secure_url, publicId: resVig.public_id, nombre: fileVig.name },
-      doc_mpd:      { url: resMpd.secure_url, publicId: resMpd.public_id, nombre: fileMpd.name },
-      aprobaciones: {},
-      pdfUrl:       null,
-      flowRunId:    null,
-      motivoRechazo: null,
-    };
+    // Construir FormData — API recibe multipart con archivos y campos
+    const form = new FormData();
+    form.append('token',           tokenDocId || '');
+    form.append('tipo_formulario', 'nacional');
+    form.append('fecha_formulario',g('fecha'));
+    form.append('tipo_empresa',    radio('tipo_empresa'));
+    form.append('tipo_persona',    radio('tipo_persona'));
+    form.append('rut',             g('rut'));
+    form.append('razon_social',    g('razon_social'));
+    form.append('pais',            g('pais'));
+    form.append('region',          g('region'));
+    form.append('ciudad',          g('ciudad'));
+    form.append('direccion',       g('direccion'));
+    form.append('celular',         g('celular'));
+    form.append('telefono',        g('telefono'));
+    form.append('email_solicitante', g('email_solicitante'));
+    form.append('rl1_nombre',      g('rl1_nombre'));
+    form.append('rl1_rut',         g('rl1_rut'));
+    form.append('rl1_cargo',       g('rl1_cargo'));
+    form.append('rl2_nombre',      g('rl2_nombre'));
+    form.append('rl2_rut',         g('rl2_rut'));
+    form.append('rl2_cargo',       g('rl2_cargo'));
+    form.append('s1_nombre',       g('s1_nombre'));
+    form.append('s1_rut',          g('s1_rut'));
+    form.append('s2_nombre',       g('s2_nombre'));
+    form.append('s2_rut',          g('s2_rut'));
+    form.append('cob_nombre',      g('cob_nombre'));
+    form.append('cob_cargo',       g('cob_cargo'));
+    form.append('cob_email',       g('cob_email'));
+    form.append('cob_celular',     g('cob_celular'));
+    form.append('com_nombre',      g('com_nombre'));
+    form.append('com_cargo',       g('com_cargo'));
+    form.append('com_email',       g('com_email'));
+    form.append('com_celular',     g('com_celular'));
+    form.append('mpd1_val',        g('mpd1_val'));
+    form.append('mpd2_val',        g('mpd2_val'));
+    form.append('mpd3_val',        g('mpd3_val'));
+    form.append('mpd4a_val',       g('mpd4a_val'));
+    form.append('mpd4b_val',       g('mpd4b_val'));
+    form.append('detalle_pep',     g('detalle_pep'));
+    form.append('firma_nombre',    g('firma_nombre'));
+    form.append('firma_rut',       g('firma_rut'));
 
-    // 3. Guardar en Firestore
-    toast('Guardando solicitud...','ok');
-    const ref = await window._addDoc(window._col(window._db_nac, 'solicitudes_clientes'), datos);
-    const solicitudId = ref.id;
+    // Archivos
+    const fileVig = document.getElementById('doc_vigencia').files[0];
+    const fileMpd = document.getElementById('doc_mpd').files[0];
+    if(fileVig) form.append('doc_vigencia', fileVig);
+    if(fileMpd) form.append('doc_mpd',      fileMpd);
 
-    // 4. Marcar token como usado
-    if(tokenDocId){
-      await window._updateDoc(window._doc_ref(window._db_nac, 'invitaciones_clientes', tokenDocId), {
-        estado: 'usado', solicitudId
-      });
+    toast('Enviando solicitud...','ok');
+    const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/solicitudes/crear`, { method:'POST', body: form });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.detail || 'Error ' + res.status);
     }
+    const data = await res.json();
+    const solicitudId = data.id;
 
-    // 5. Llamar webhook Power Automate
+    // Webhook Power Automate
     if(POWER_AUTOMATE_WEBHOOK && POWER_AUTOMATE_WEBHOOK !== '__PA_WEBHOOK__'){
       try {
         await fetch(POWER_AUTOMATE_WEBHOOK, {
@@ -1172,19 +1125,15 @@ async function enviarSolicitud(){
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             solicitudId, tipo: 'nacional',
-            razonSocial: datos.razon_social,
-            rut: datos.rut,
-            solicitante: datos.email_solicitante,
-            region: datos.region, ciudad: datos.ciudad,
-            celular: datos.celular,
-            rl1: `${datos.rl1_nombre} (${datos.rl1_cargo})`,
-            creadoEn: datos.creadoEn,
+            razonSocial: g('razon_social'), rut: g('rut'),
+            solicitante: g('email_solicitante'),
+            region: g('region'), ciudad: g('ciudad'),
           })
         });
       } catch(e){ console.warn('Webhook no disponible:', e.message); }
     }
 
-    // 6. Mostrar pantalla de éxito con ID
+    // Pantalla de éxito
     document.getElementById('form-wrapper').style.display  = 'none';
     document.getElementById('progress-bar').style.display  = 'none';
     const screen = document.getElementById('success-screen');
