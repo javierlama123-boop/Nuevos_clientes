@@ -182,36 +182,45 @@ tr:hover td{background:rgba(0,43,79,0.025)}
 </style>
 
 <!-- API Azure + Firebase para tokens -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore, collection, query, orderBy, onSnapshot,
-  doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const cfg = {
-  apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
-  authDomain: "clientesnuevos-e915d.firebaseapp.com",
-  projectId: "clientesnuevos-e915d",
-  storageBucket: "clientesnuevos-e915d.firebasestorage.app",
-  messagingSenderId: "366989020508",
-  appId: "1:366989020508:web:686a320c65ba1fc02bc599"
-};
-const app = initializeApp(cfg);
-const db  = getFirestore(app);
-window.DB         = db;
-window.FS_col     = collection;
-window.FS_query   = query;
-window.FS_orderBy = orderBy;
-window.FS_snap    = onSnapshot;
-window.FS_doc     = doc;
-window.FS_getDoc  = getDoc;
-window.FS_getDocs = getDocs;
-window.FS_add     = addDoc;
-window.FS_update  = updateDoc;
-window.FS_delete  = deleteDoc;
-window.FS_setDoc  = setDoc;
-window.FB_READY   = true;
-document.dispatchEvent(new Event('fb-ready'));
+<!-- Firebase compat (no module — evita conflictos de scope) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  const cfg = {
+    apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
+    authDomain: "clientesnuevos-e915d.firebaseapp.com",
+    projectId: "clientesnuevos-e915d",
+    storageBucket: "clientesnuevos-e915d.firebasestorage.app",
+    messagingSenderId: "366989020508",
+    appId: "1:366989020508:web:686a320c65ba1fc02bc599"
+  };
+  firebase.initializeApp(cfg);
+  const db = firebase.firestore();
+
+  window.FB_READY   = true;
+  window.FS_setDoc  = (ref, data) => ref.set(data);
+  window.FS_update  = (ref, data) => ref.update(data);
+  window.FS_getDocs = (q) => q.get();
+  window.FS_snap    = (q, cb, err) => q.onSnapshot(snap => {
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    cb({ docs: snap.docs });
+  }, err);
+
+  // Helpers para construir refs/queries
+  window.FS_col     = (db_, col) => db.collection(col);
+  window.FS_doc     = (db_, col, id) => db.collection(col).doc(id);
+  window.FS_query   = (ref, ...constraints) => {
+    let q = ref;
+    constraints.forEach(c => { if(c) q = c(q); });
+    return q;
+  };
+  window.FS_orderBy = (field, dir='asc') => (ref) => ref.orderBy(field, dir);
+  window.FS_add     = (ref, data) => ref.add(data);
+  window.DB         = db;
+
+  document.dispatchEvent(new Event('fb-ready'));
+})();
 </script>
 <script>
 const API = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
@@ -531,9 +540,6 @@ function irA(vista){
 // MONITOR
 // ═══════════════════════════════════════════
 let _monitorInterval = null;
-let unsub = null;
-let unsubTokens = null;
-
 async function arrancarMonitor(){
   await fbOk();
   const q = window.FS_query(window.FS_col(window.DB,'solicitudes_clientes'), window.FS_orderBy('creadoEn','desc'));
