@@ -422,36 +422,21 @@ tr:hover td{background:rgba(0,43,79,0.02);cursor:pointer}
 }
 </style>
 
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore, collection, query, orderBy, onSnapshot,
-  doc, getDoc, updateDoc, Timestamp, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<!-- API Azure -->
+<script>
+const API_REV = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
+let jwtTokenRev = null;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAqL6ntwQTHSEeDspntnqlie0bZZ5Pnrc0",
-  authDomain: "clientesnuevos-e915d.firebaseapp.com",
-  projectId: "clientesnuevos-e915d",
-  storageBucket: "clientesnuevos-e915d.firebasestorage.app",
-  messagingSenderId: "366989020508",
-  appId: "1:366989020508:web:686a320c65ba1fc02bc599"
-};
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-window._db       = db;
-window._col      = collection;
-window._query    = query;
-window._orderBy  = orderBy;
-window._snap     = onSnapshot;
-window._doc      = doc;
-window._getDoc   = getDoc;
-window._getDocs  = getDocs;
-window._updateDoc = updateDoc;
-window._Timestamp = Timestamp;
-window._fbReady  = true;
-document.dispatchEvent(new Event('fb-ready'));
+async function apiFetchRev(path, opts={}) {
+  const headers = { 'Content-Type': 'application/json', ...opts.headers };
+  if(jwtTokenRev) headers['Authorization'] = 'Bearer ' + jwtTokenRev;
+  const res = await fetch(API_REV + path, { ...opts, headers });
+  if(!res.ok) {
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.detail || 'Error ' + res.status);
+  }
+  return res.json();
+}
 </script>
 </head>
 <body>
@@ -659,33 +644,24 @@ async function acceder(){
 
   try {
     // Buscar en Firestore
-    await fbReady();
-    const snap = await window._getDocs(window._col(window._db, 'usuarios_portal'));
-
-    // Buscar coincidencia
-    let encontrado = null;
-    snap.forEach(d => {
-      const u = d.data();
-      if(u.usuario === usuario && u.password === pass && u.activo !== false)
-        encontrado = { id: d.id, ...u };
+    const data = await apiFetchRev('/api/usuarios/login', {
+      method: 'POST',
+      body: JSON.stringify({ usuario, password: pass })
     });
+    jwtTokenRev = data.token;
+    // Guardar token para SSO
+    const sesionData = { usuario: data.usuario, nombre: data.nombre, rol: data.rol, token: data.token };
+    localStorage.setItem('mx_sesion', JSON.stringify(sesionData));
 
-    if(!encontrado){
-      err.textContent = 'Usuario o contraseña incorrectos';
-      err.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Ingresar →';
-      return;
-    }
-
-    if(!ROLES_PERMITIDOS.includes(encontrado.rol)){
+    if(!ROLES_PERMITIDOS.includes(data.rol)){
       err.textContent = 'Tu rol no tiene acceso a este panel';
       err.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Ingresar →';
       return;
     }
 
-    areaActual    = ROL_AREA[encontrado.rol] || 'comercial';
-    sesionUsuario = encontrado;
+    areaActual    = ROL_AREA[data.rol] || 'comercial';
+    sesionUsuario = { usuario: data.usuario, nombre: data.nombre, rol: data.rol };
     _iniciarSesion();
 
   } catch(e){
@@ -707,9 +683,11 @@ function _iniciarSesion(){
 }
 
 function cerrarSesion(){
+  if(_pollingInterval) clearInterval(_pollingInterval);
   if(unsubscribe) unsubscribe();
   sesionIniciada = false;
   sesionUsuario  = null;
+  jwtTokenRev    = null;
   solicitudes    = [];
   localStorage.removeItem('mx_sesion');
   document.getElementById('gate-wrapper').style.display = 'flex';
@@ -750,25 +728,20 @@ function configurarUI(){
     `<span class="nav-icon">${icon}</span> Mis pendientes <span class="nav-badge" id="badge-nav-pendientes">0</span>`;
 }
 
-// ── Firebase listener ────────────────────────────────────────
+// ── API listener (polling) ───────────────────────────────────
+let _pollingInterval = null;
+
 async function iniciarListener(){
-  await fbReady();
-  const q = window._query(
-    window._col(window._db, 'solicitudes_clientes'),
-    window._orderBy('creadoEn', 'desc')
-  );
-  unsubscribe = window._snap(q, snap => {
-    solicitudes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    actualizarStats();
-    renderTabla();
-  });
+  await cargarSolicitudes();
+  _pollingInterval = setInterval(cargarSolicitudes, 30000);
 }
 
-function fbReady(){
-  return new Promise(resolve => {
-    if(window._fbReady){ resolve(); return; }
-    document.addEventListener('fb-ready', resolve, { once:true });
-  });
+async function cargarSolicitudes(){
+  try {
+    solicitudes = await apiFetchRev('/api/solicitudes');
+    actualizarStats();
+    renderTabla();
+  } catch(e){ console.warn('Error cargando solicitudes:', e.message); }
 }
 
 // ── Stats ────────────────────────────────────────────────────
@@ -1129,9 +1102,12 @@ async function decidir(decision, actionArea){
   if(btnRe){ btnRe.disabled = true; }
 
   try {
-    await fbReady();
-    await window._updateDoc(window._doc(window._db, 'solicitudes_clientes', id), updates);
+    await apiFetchRev(`/api/solicitudes/${id}/decidir`, {
+      method: 'PATCH',
+      body: JSON.stringify({ decision, paso, observacion: obs })
+    });
     toast(`✅ ${decision === 'aprobado' ? 'Aprobado' : 'Rechazado'} correctamente`, 'ok');
+    await cargarSolicitudes();
     cerrarModal();
   } catch(err){
     toast('Error al guardar: ' + err.message, 'err');
@@ -1174,6 +1150,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if(user && rolesPermitidos.includes(user.rol)){
         areaActual    = ROL_AREA[user.rol] || 'comercial';
         sesionUsuario = user;
+        if(user.token) jwtTokenRev = user.token;
         _iniciarSesion();
         return;
       }
