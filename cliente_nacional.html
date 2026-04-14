@@ -880,6 +880,8 @@ async function validarToken(){
 
 <div class="toast" id="toast"></div>
 
+
+
 <script>
 let currentStep = 1;
 const TOTAL = 5;
@@ -933,7 +935,121 @@ function toggleDeclCb(){
 function onMpdCheck(cb){ /* legacy */ }
 function updateDeclCb(cb){ /* legacy */ }
 
+let currentStep = 1;
+const TOTAL = 5;
 
+
+
+function goStep(n){
+  document.querySelectorAll('.section').forEach((s,i)=>{
+    s.classList.toggle('active', i === n-1);
+  });
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i < n-1) s.classList.add('done');
+    if(i === n-1) s.classList.add('active');
+  });
+  document.querySelectorAll('.nav-item').forEach((s,i)=>{
+    s.classList.toggle('active', i === n-1);
+  });
+  currentStep = n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function validateStep(n){
+  if(n===1){
+    const fields = ['fecha','rut','razon_social','pais','region','ciudad','direccion','celular'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!document.querySelector('input[name="tipo_empresa"]:checked')){toast('Selecciona el tipo de empresa','err');return false;}
+    if(!document.querySelector('input[name="tipo_persona"]:checked')){toast('Selecciona el tipo de persona','err');return false;}
+    if(!ok){toast('Completa todos los campos obligatorios','err');return false;}
+  }
+  if(n===2){
+    const fields = ['rl1_nombre','rl1_rut','rl1_cargo'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!ok){toast('Completa los datos del Representante Legal N°1','err');return false;}
+  }
+  if(n===3){
+    const fields = ['cob_nombre','cob_cargo','cob_email','cob_celular','com_nombre','com_cargo','com_email','com_celular'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!ok){toast('Completa todos los campos de contacto','err');return false;}
+  }
+  if(n===4){
+    const campos = ['mpd1_val','mpd2_val','mpd3_val','mpd4a_val','mpd4b_val'];
+    for(const c of campos){
+      if(!document.getElementById(c).value){toast('Responde todas las preguntas del MPD','err');return false;}
+    }
+  }
+  if(n===5){
+    if(!document.getElementById('doc_vigencia').files.length){toast('Adjunta el Certificado de Vigencia','err');return false;}
+    if(!document.getElementById('doc_mpd').files.length){toast('Adjunta la Declaración MPD firmada','err');return false;}
+    if(!document.getElementById('firma_nombre').value.trim()){toast('Ingresa el nombre del representante','err');return false;}
+    if(!document.getElementById('acepta_declaracion').checked){toast('Debes aceptar la declaración final','err');return false;}
+  }
+  return true;
+}
+
+function nextStep(n){
+  if(!validateStep(n)) return;
+  if(n < TOTAL) goStep(n+1);
+}
+function prevStep(n){
+  if(n > 1) goStep(n-1);
+}
+
+function togglePersona(el){
+  const lbl = document.getElementById('rut-label');
+  if(el.value==='Natural') lbl.innerHTML='Número de Cédula <span class="req">*</span>';
+  else lbl.innerHTML='RUT <span class="req">*</span>';
+}
+function syncTipoEmpresa(el){ /* tipo_empresa eliminado */ }
+
+function selectYesNo(prefix, val){
+  const siBtn = document.getElementById(prefix+'_si');
+  const noBtn = document.getElementById(prefix+'_no');
+  siBtn.classList.remove('selected-yes','selected-no');
+  noBtn.classList.remove('selected-yes','selected-no');
+  if(val==='si'){siBtn.classList.add('selected-yes');}
+  else{noBtn.classList.add('selected-no');}
+  document.getElementById(prefix+'_val').value = val;
+  // Mostrar detalle PEP si corresponde
+  if(prefix==='mpd4a'||prefix==='mpd4b'){
+    const a = document.getElementById('mpd4a_val').value;
+    const b = document.getElementById('mpd4b_val').value;
+    document.getElementById('detalle-pep-wrapper').style.display = (a==='si'||b==='si')?'block':'none';
+  }
+}
+
+function handleFile(docId, inputId, nameId, cardId){
+  const file = document.getElementById(inputId).files[0];
+  if(file){
+    document.getElementById(nameId).textContent = '✓ ' + file.name;
+    document.getElementById(cardId).classList.add('has-file');
+  }
+}
+
+function submitForm(){
+  if(!validateStep(5)) return;
+  document.getElementById('form-wrapper').style.display='none';
+  document.getElementById('progress-bar').style.display='none';
+  document.getElementById('success-screen').classList.add('show');
+  toast('¡Solicitud enviada exitosamente!','ok');
+}
 </script>
 </body>
 </html>
