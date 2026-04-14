@@ -181,7 +181,7 @@ tr:hover td{background:rgba(0,43,79,0.025)}
 }
 </style>
 
-<!-- Firebase -->
+<!-- API Azure + Firebase para tokens -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -212,6 +212,21 @@ window.FS_delete  = deleteDoc;
 window.FS_setDoc  = setDoc;
 window.FB_READY   = true;
 document.dispatchEvent(new Event('fb-ready'));
+</script>
+<script>
+const API = 'https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net';
+let jwtToken = null;
+
+async function apiFetch(path, opts={}) {
+  const headers = { 'Content-Type': 'application/json', ...opts.headers };
+  if(jwtToken) headers['Authorization'] = 'Bearer ' + jwtToken;
+  const res = await fetch(API + path, { ...opts, headers });
+  if(!res.ok) {
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.detail || 'Error ' + res.status);
+  }
+  return res.json();
+}
 </script>
 </head>
 <body>
@@ -420,7 +435,7 @@ let detalleAbierto = null;
 let ultimoLink = '';
 
 // ═══════════════════════════════════════════
-// FIREBASE HELPER
+// FIREBASE HELPER (para tokens)
 // ═══════════════════════════════════════════
 function fbOk(){
   return new Promise(r => {
@@ -444,28 +459,14 @@ async function login(){
   btn.disabled = true; btn.textContent = 'Verificando...';
 
   try{
-    // Superadmin hardcodeado
-    if(u === SA.usuario && p === SA.password){
-      iniciarApp({ usuario:SA.usuario, nombre:SA.nombre, rol:SA.rol });
-      return;
-    }
-    // Firestore
-    await fbOk();
-    const snap = await window.FS_getDocs(window.FS_col(window.DB,'usuarios_portal'));
-    let found = null;
-    snap.forEach(d => {
-      const usr = d.data();
-      if(usr.usuario === u && usr.password === p && usr.activo !== false)
-        found = { id:d.id, ...usr };
+    const data = await apiFetch('/api/usuarios/login', {
+      method: 'POST',
+      body: JSON.stringify({ usuario: u, password: p })
     });
-    if(!found){
-      err.textContent = 'Usuario o contraseña incorrectos';
-      btn.disabled = false; btn.textContent = 'Ingresar →';
-      return;
-    }
-    iniciarApp({ usuario:found.usuario, nombre:found.nombre, rol:found.rol, id:found.id });
+    jwtToken = data.token;
+    iniciarApp({ usuario: data.usuario, nombre: data.nombre, rol: data.rol });
   } catch(e){
-    err.textContent = 'Error: ' + e.message;
+    err.textContent = e.message || 'Usuario o contraseña incorrectos';
     btn.disabled = false; btn.textContent = 'Ingresar →';
   }
 }
@@ -475,7 +476,7 @@ function iniciarApp(user){
   const rol = ROL[user.rol] || ROL.monitor;
 
   // Guardar sesión para SSO con revisar.html
-  localStorage.setItem('mx_sesion', JSON.stringify(user));
+  localStorage.setItem('mx_sesion', JSON.stringify({ usuario: user.usuario, nombre: user.nombre, rol: user.rol }));
 
   document.getElementById('login-gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -500,6 +501,7 @@ function logout(){
   if(unsub) unsub();
   if(unsubTokens) unsubTokens();
   sesion = null; solicitudes = []; solFilt = [];
+  jwtToken = null;
   localStorage.removeItem('mx_sesion');
   document.getElementById('login-gate').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
@@ -528,6 +530,10 @@ function irA(vista){
 // ═══════════════════════════════════════════
 // MONITOR
 // ═══════════════════════════════════════════
+let _monitorInterval = null;
+let unsub = null;
+let unsubTokens = null;
+
 async function arrancarMonitor(){
   await fbOk();
   const q = window.FS_query(window.FS_col(window.DB,'solicitudes_clientes'), window.FS_orderBy('creadoEn','desc'));
@@ -732,12 +738,18 @@ function genCodigo(){
   return s.slice(0,4)+'-'+s.slice(4);
 }
 
+let _tokensInterval = null;
+
 async function arrancarTokens(){
   await fbOk();
   const q = window.FS_query(window.FS_col(window.DB,'invitaciones_clientes'), window.FS_orderBy('creadoEn','desc'));
-  unsubTokens = window.FS_snap(q, snap => {
+  window.FS_snap(q, snap => {
     renderTokens(snap.docs.map(d=>({id:d.id,...d.data()})));
   });
+}
+
+async function cargarTokens(){
+  // usada por polling — no aplica en Firebase
 }
 
 async function generarToken(){
@@ -750,7 +762,6 @@ async function generarToken(){
   const codigo  = genCodigo();
   try{
     await fbOk();
-    // Usar el código como ID del documento para poder leerlo directamente sin query
     await window.FS_setDoc(window.FS_doc(window.DB,'invitaciones_clientes', codigo),{
       codigo, tipo, empresa:empresa||null, email:email||null,
       creadoEn:ahora.toISOString(), expiraEn:expira.toISOString(),
@@ -822,9 +833,7 @@ function renderTokens(tokens){
 async function cargarUsuarios(){
   const body = document.getElementById('usuarios-body');
   body.innerHTML = '<div class="empty"><span class="spinner"></span>Cargando...</div>';
-  await fbOk();
-  const snap = await window.FS_getDocs(window.FS_col(window.DB,'usuarios_portal'));
-  const usuarios = snap.docs.map(d=>({id:d.id,...d.data()}));
+  const usuarios = await apiFetch('/api/usuarios');
   const esSA = sesion?.rol==='superadmin';
 
   body.innerHTML = `
@@ -884,31 +893,37 @@ async function crearUsuario(){
   if(!nombre||!usuario||!pass){ toast('Completa todos los campos','err'); return; }
   if(pass.length<8){ toast('Contraseña mínimo 8 caracteres','err'); return; }
   if(usuario==='superadmin'){ toast('Nombre de usuario reservado','err'); return; }
-  await fbOk();
-  await window.FS_add(window.FS_col(window.DB,'usuarios_portal'),{
-    nombre, usuario, password:pass, rol, activo:true,
-    creadoEn:new Date().toISOString(), creadoPor:sesion.usuario
-  });
-  toast(`✅ Usuario @${usuario} creado`,'ok');
-  document.getElementById('nu-nombre').value='';
-  document.getElementById('nu-usuario').value='';
-  document.getElementById('nu-pass').value='';
-  cargarUsuarios();
+  try {
+    await apiFetch('/api/usuarios', {
+      method: 'POST',
+      body: JSON.stringify({ nombre, usuario, password: pass, rol })
+    });
+    toast(`✅ Usuario @${usuario} creado`,'ok');
+    document.getElementById('nu-nombre').value='';
+    document.getElementById('nu-usuario').value='';
+    document.getElementById('nu-pass').value='';
+    cargarUsuarios();
+  } catch(e){ toast('Error: '+e.message,'err'); }
 }
 
 async function toggleUser(id, activo){
-  await fbOk();
-  await window.FS_update(window.FS_doc(window.DB,'usuarios_portal',id),{activo:!activo});
-  toast(activo?'Usuario desactivado':'Usuario activado','info');
-  cargarUsuarios();
+  try {
+    await apiFetch(`/api/usuarios/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ activo: !activo })
+    });
+    toast(activo?'Usuario desactivado':'Usuario activado','info');
+    cargarUsuarios();
+  } catch(e){ toast('Error: '+e.message,'err'); }
 }
 
 async function eliminarUser(id, nombre){
   if(!confirm(`¿Eliminar al usuario "${nombre}"?`)) return;
-  await fbOk();
-  await window.FS_delete(window.FS_doc(window.DB,'usuarios_portal',id));
-  toast('Usuario eliminado','info');
-  cargarUsuarios();
+  try {
+    await apiFetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+    toast('Usuario eliminado','info');
+    cargarUsuarios();
+  } catch(e){ toast('Error: '+e.message,'err'); }
 }
 
 // ═══════════════════════════════════════════
