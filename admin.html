@@ -352,6 +352,8 @@ async function apiFetch(path, opts={}) {
               <input type="text" id="tf-empresa" placeholder="Pesquera Los Andes SpA"/></div>
             <div class="tf-g"><label>Email cliente (opcional)</label>
               <input type="email" id="tf-email" placeholder="contacto@empresa.cl"/></div>
+            <div class="tf-g"><label>Tipo de producto</label>
+              <select id="tf-producto"><option value="">— Sin especificar —</option><option value="Commodity">Commodity</option><option value="VAP">VAP</option></select></div>
             <div class="tf-g" style="max-width:130px"><label>Vigencia</label>
               <select id="tf-horas"><option value="24">24 h</option><option value="48" selected>48 h</option><option value="72">72 h</option><option value="168">7 días</option></select></div>
             <button class="btn-gen" onclick="generarToken()">🔗 Generar</button>
@@ -716,14 +718,15 @@ async function cargarTokens(){
 }
 
 async function generarToken(){
-  const tipo    = document.getElementById('tf-tipo').value;
-  const empresa = document.getElementById('tf-empresa').value.trim();
-  const email   = document.getElementById('tf-email').value.trim();
-  const horas   = parseInt(document.getElementById('tf-horas').value)||48;
+  const tipo     = document.getElementById('tf-tipo').value;
+  const empresa  = document.getElementById('tf-empresa').value.trim();
+  const email    = document.getElementById('tf-email').value.trim();
+  const horas    = parseInt(document.getElementById('tf-horas').value)||48;
+  const producto = document.getElementById('tf-producto').value.trim();
   try{
     const data = await apiFetch('/api/tokens/crear', {
       method: 'POST',
-      body: JSON.stringify({ tipo, empresa: empresa||null, email: email||null, horas })
+      body: JSON.stringify({ tipo, empresa: empresa||null, email: email||null, horas, producto: producto||null })
     });
     const base = window.location.href.replace(/admin\.html.*$/,'').replace(/\/$/,'');
     const form = tipo==='nacional'?'cliente_nacional.html':'cliente_internacional.html';
@@ -732,6 +735,7 @@ async function generarToken(){
     document.getElementById('token-result').style.display = 'block';
     document.getElementById('tf-empresa').value='';
     document.getElementById('tf-email').value='';
+    document.getElementById('tf-producto').value='';
     await cargarTokens();
     toast('✅ Link generado','ok');
   } catch(e){ toast('Error: '+e.message,'err'); }
