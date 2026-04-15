@@ -881,7 +881,7 @@ function goStep(n){
 
 function validateStep(n){
   if(n===1){
-    const fields = ['fecha','rut','razon_social','pais','region','ciudad','direccion','celular'];
+    const fields = ['fecha','taxid','razon_social','pais','ciudad','celular'];
     let ok = true;
     fields.forEach(id=>{
       const el = document.getElementById(id);
@@ -892,7 +892,7 @@ function validateStep(n){
     if(!ok){toast('Completa todos los campos obligatorios','err');return false;}
   }
   if(n===2){
-    const fields = ['rl1_nombre','rl1_rut','rl1_cargo'];
+    const fields = ['rl1_nombre'];  // taxid es opcional en internacional
     let ok = true;
     fields.forEach(id=>{
       const el = document.getElementById(id);
@@ -911,12 +911,7 @@ function validateStep(n){
     });
     if(!ok){toast('Completa todos los campos de contacto','err');return false;}
   }
-  if(n===4){
-    const campos = ['mpd1_val','mpd2_val','mpd3_val','mpd4a_val','mpd4b_val'];
-    for(const c of campos){
-      if(!document.getElementById(c).value){toast('Responde todas las preguntas del MPD','err');return false;}
-    }
-  }
+
   if(n===4){
     if(!document.getElementById('doc_vigencia')?.files?.length){toast('Attach the Certificate of Good Standing','err');return false;}
     if(!document.getElementById('acepta_mpd')?.checked){toast('You must accept the MPD Declaration','err');return false;}
@@ -935,9 +930,8 @@ function prevStep(n){
 }
 
 function togglePersona(el){
-  const lbl = document.getElementById('rut-label');
-  if(el.value==='Natural') lbl.innerHTML='Número de Cédula <span class="req">*</span>';
-  else lbl.innerHTML='RUT <span class="req">*</span>';
+  // Internacional usa taxid — no hay rut-label que cambiar
+  // Solo ocultar/mostrar campos según tipo de persona si es necesario
 }
 function syncTipoEmpresa(el){ /* tipo_empresa eliminado */ }
 
@@ -968,7 +962,7 @@ function handleFile(docId, inputId, nameId, cardId){
 function submitForm(){ enviarSolicitud(); }
 
 async function enviarSolicitud(){
-  if(!validateStep(5)) return;
+  if(!validateStep(4)) return;
   const btn = document.querySelector('.btn.btn-salmon[onclick="enviarSolicitud()"]')
            || document.querySelector('.btn-salmon');
   if(btn){ btn.disabled=true; btn.textContent='⏳ Enviando...'; }
