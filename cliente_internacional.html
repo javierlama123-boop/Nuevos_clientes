@@ -305,6 +305,18 @@ async function validarToken(){
     btn.textContent = 'Verify access →'; btn.disabled = false;
   }
 }
+
+// ── Auto-leer token desde URL al cargar ──────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const tokenUrl = params.get('token');
+  if(tokenUrl){
+    const inp = document.getElementById('token-input');
+    if(inp) inp.value = tokenUrl.toUpperCase();
+    // Validar automáticamente
+    validarToken();
+  }
+});
 </script>
 <!-- pdf-lib: generar PDF dinámico -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
@@ -659,7 +671,7 @@ async function validarToken(){
           <div id="mpd-pdf-container" style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#f8f8f8">
             <iframe src="https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D" style="width:100%;height:520px;border:none;display:block;background:#fff" title="MPD Declaration"></iframe>
           </div>
-          <div id="mpd-accept-area" style="opacity:0.4;pointer-events:none;transition:opacity 0.4s">
+          <div id="mpd-accept-area" style="opacity:1;pointer-events:auto;transition:opacity 0.4s">
             <div class="mx-checkbox-wrap" id="mpd-cb-label" onclick="toggleMpdCb()">
               <div class="mx-checkbox-box">
                 <svg width="16" height="16" viewBox="0 0 16 16"><polyline points="3,8 7,12 13,4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -737,7 +749,7 @@ function toast(msg, type='ok'){
 }
 
 // ── MPD PDF dinámico con pdf-lib ─────────────────────────────
-let mpdScrolled = false;
+let mpdScrolled = true;
 const PDF_SRC = 'https://blobnuevosclientes.blob.core.windows.net/contenedor-clientes-nuevos/Declaracion_MPD_Clientes_Nacional.pdf?sp=r&st=2026-04-14T21:38:23Z&se=2030-01-01T04:53:23Z&spr=https&sv=2025-11-05&sr=b&sig=s5mJfDTFn5eu1zOs2dxYe8KTLOJir8OrgwPdc8pkBHM%3D';
 
 async function initMpdScroll(){
@@ -749,6 +761,13 @@ async function initMpdScroll(){
   if(hint) hint.style.display='none';
 }
 
+function habilitarMpdManual(){
+  mpdScrolled = true;
+  const area = document.getElementById('mpd-accept-area');
+  const hint = document.getElementById('mpd-scroll-hint');
+  if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
+  if(hint){ hint.style.display='none'; }
+}
 function toggleMpdCb(){
   const cb    = document.getElementById('acepta_mpd');
   const label = document.getElementById('mpd-cb-label');
@@ -769,6 +788,263 @@ function toggleDeclCb(){
 function onMpdCheck(cb){ /* legacy */ }
 function updateDeclCb(cb){ /* legacy */ }
 
+
+
+async function enviarSolicitud(){
+  if(!validateStep(4)) return;
+  const btn = document.querySelector('.btn.btn-navy[onclick="enviarSolicitud()"]')
+           || document.querySelector('.btn-navy');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Submitting...'; }
+
+  try {
+    const g    = id => (document.getElementById(id)?.value||'').trim();
+    const radio= name => document.querySelector(`input[name="${name}"]:checked`)?.value||'';
+
+    const form = new FormData();
+    form.append('token',             tokenDocId||'');
+    form.append('tipo_formulario',   'internacional');
+    form.append('fecha_formulario',  g('fecha'));
+    form.append('tipo_persona',      radio('tipo_persona'));
+    form.append('taxid',             g('taxid'));
+    form.append('razon_social',      g('razon_social'));
+    form.append('pais',              g('pais'));
+    form.append('region',            g('region'));
+    form.append('ciudad',            g('ciudad'));
+    form.append('direccion',         g('direccion'));
+    form.append('celular',           g('celular'));
+    form.append('telefono',          g('telefono'));
+    form.append('email_solicitante', g('email_solicitante'));
+    form.append('rl1_nombre',        g('rl1_nombre'));
+    form.append('rl1_taxid',         g('rl1_taxid'));
+    form.append('rl1_cargo',         g('rl1_cargo'));
+    form.append('rl2_nombre',        g('rl2_nombre'));
+    form.append('rl2_taxid',         g('rl2_taxid'));
+    form.append('rl2_cargo',         g('rl2_cargo'));
+    form.append('s1_nombre',         g('s1_nombre'));
+    form.append('s1_taxid',          g('s1_taxid'));
+    form.append('s2_nombre',         g('s2_nombre'));
+    form.append('s2_taxid',          g('s2_taxid'));
+    form.append('cob_nombre',        g('cob_nombre'));
+    form.append('cob_cargo',         g('cob_cargo'));
+    form.append('cob_email',         g('cob_email'));
+    form.append('cob_celular',       g('cob_celular'));
+    form.append('com_nombre',        g('com_nombre'));
+    form.append('com_cargo',         g('com_cargo'));
+    form.append('com_email',         g('com_email'));
+    form.append('com_celular',       g('com_celular'));
+    form.append('firma_nombre',      g('firma_nombre'));
+    form.append('firma_taxid',       g('firma_taxid'));
+
+    const fileVig = document.getElementById('doc_vigencia')?.files[0];
+    if(fileVig) form.append('doc_vigencia', fileVig);
+    form.append('doc_mpd_aceptado', 'true');
+
+    toast('Submitting application...','ok');
+    const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/solicitudes/crear`, {method:'POST', body:form});
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.detail||'Error '+res.status);
+    }
+    const data = await res.json();
+    const solicitudId = data.id;
+
+    document.getElementById('form-wrapper').style.display  = 'none';
+    document.getElementById('progress-bar').style.display  = 'none';
+    const screen = document.getElementById('success-screen');
+    screen.classList.add('show');
+    const idEl = document.getElementById('solicitud-id-display');
+    if(idEl) idEl.textContent = solicitudId;
+    const copyBtn = document.getElementById('btn-copiar-id');
+    if(copyBtn) copyBtn.setAttribute('data-id', solicitudId);
+
+  } catch(e){
+    toast('Error submitting: '+e.message,'err');
+    if(btn){ btn.disabled=false; btn.textContent='Submit Application ✓'; }
+  }
+}
+
+function goStep(n){
+  document.querySelectorAll('.section').forEach((s,i)=>{
+    s.classList.toggle('active', i === n-1);
+  });
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i < n-1) s.classList.add('done');
+    if(i === n-1) s.classList.add('active');
+  });
+  document.querySelectorAll('.nav-item').forEach((s,i)=>{
+    s.classList.toggle('active', i === n-1);
+  });
+  currentStep = n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function validateStep(n){
+  if(n===1){
+    const fields = ['fecha','rut','razon_social','pais','region','ciudad','direccion','celular'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!document.querySelector('input[name="tipo_persona"]:checked')){toast('Selecciona el tipo de persona','err');return false;}
+    if(!ok){toast('Completa todos los campos obligatorios','err');return false;}
+  }
+  if(n===2){
+    const fields = ['rl1_nombre','rl1_rut','rl1_cargo'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!ok){toast('Completa los datos del Representante Legal N°1','err');return false;}
+  }
+  if(n===3){
+    const fields = ['cob_nombre','cob_cargo','cob_email','cob_celular','com_nombre','com_cargo','com_email','com_celular'];
+    let ok = true;
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el.value.trim()){el.classList.add('error');ok=false;}
+      else el.classList.remove('error');
+    });
+    if(!ok){toast('Completa todos los campos de contacto','err');return false;}
+  }
+  if(n===4){
+    const campos = ['mpd1_val','mpd2_val','mpd3_val','mpd4a_val','mpd4b_val'];
+    for(const c of campos){
+      if(!document.getElementById(c).value){toast('Responde todas las preguntas del MPD','err');return false;}
+    }
+  }
+  if(n===4){
+    if(!document.getElementById('doc_vigencia')?.files?.length){toast('Attach the Certificate of Good Standing','err');return false;}
+    if(!document.getElementById('acepta_mpd')?.checked){toast('You must accept the MPD Declaration','err');return false;}
+    if(!document.getElementById('firma_nombre')?.value?.trim()){toast('Enter the representative name','err');return false;}
+    if(!document.getElementById('acepta_declaracion')?.checked){toast('You must accept the final declaration','err');return false;}
+  }
+  return true;
+}
+
+function nextStep(n){
+  if(!validateStep(n)) return;
+  if(n < TOTAL) goStep(n+1);
+}
+function prevStep(n){
+  if(n > 1) goStep(n-1);
+}
+
+function togglePersona(el){
+  const lbl = document.getElementById('rut-label');
+  if(el.value==='Natural') lbl.innerHTML='Número de Cédula <span class="req">*</span>';
+  else lbl.innerHTML='RUT <span class="req">*</span>';
+}
+function syncTipoEmpresa(el){ /* tipo_empresa eliminado */ }
+
+function selectYesNo(prefix, val){
+  const siBtn = document.getElementById(prefix+'_si');
+  const noBtn = document.getElementById(prefix+'_no');
+  siBtn.classList.remove('selected-yes','selected-no');
+  noBtn.classList.remove('selected-yes','selected-no');
+  if(val==='si'){siBtn.classList.add('selected-yes');}
+  else{noBtn.classList.add('selected-no');}
+  document.getElementById(prefix+'_val').value = val;
+  // Mostrar detalle PEP si corresponde
+  if(prefix==='mpd4a'||prefix==='mpd4b'){
+    const a = document.getElementById('mpd4a_val').value;
+    const b = document.getElementById('mpd4b_val').value;
+    document.getElementById('detalle-pep-wrapper').style.display = (a==='si'||b==='si')?'block':'none';
+  }
+}
+
+function handleFile(docId, inputId, nameId, cardId){
+  const file = document.getElementById(inputId).files[0];
+  if(file){
+    document.getElementById(nameId).textContent = '✓ ' + file.name;
+    document.getElementById(cardId).classList.add('has-file');
+  }
+}
+
+function submitForm(){ enviarSolicitud(); }
+
+async function enviarSolicitud(){
+  if(!validateStep(5)) return;
+  const btn = document.querySelector('.btn.btn-salmon[onclick="enviarSolicitud()"]')
+           || document.querySelector('.btn-salmon');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Enviando...'; }
+
+  try {
+    const g    = id => (document.getElementById(id)?.value||'').trim();
+    const radio= name => document.querySelector(`input[name="${name}"]:checked`)?.value||'';
+
+    const form = new FormData();
+    form.append('token',             tokenDocId||'');
+    form.append('tipo_formulario',   'nacional');
+    form.append('fecha_formulario',  g('fecha'));
+    form.append('tipo_persona',      radio('tipo_persona'));
+    form.append('rut',               g('rut'));
+    form.append('razon_social',      g('razon_social'));
+    form.append('pais',              g('pais'));
+    form.append('region',            g('region'));
+    form.append('ciudad',            g('ciudad'));
+    form.append('direccion',         g('direccion'));
+    form.append('celular',           g('celular'));
+    form.append('telefono',          g('telefono'));
+    form.append('email_solicitante', g('email_solicitante'));
+    form.append('rl1_nombre',        g('rl1_nombre'));
+    form.append('rl1_rut',           g('rl1_rut'));
+    form.append('rl1_cargo',         g('rl1_cargo'));
+    form.append('rl2_nombre',        g('rl2_nombre'));
+    form.append('rl2_rut',           g('rl2_rut'));
+    form.append('rl2_cargo',         g('rl2_cargo'));
+    form.append('s1_nombre',         g('s1_nombre'));
+    form.append('s1_rut',            g('s1_rut'));
+    form.append('s2_nombre',         g('s2_nombre'));
+    form.append('s2_rut',            g('s2_rut'));
+    form.append('cob_nombre',        g('cob_nombre'));
+    form.append('cob_cargo',         g('cob_cargo'));
+    form.append('cob_email',         g('cob_email'));
+    form.append('cob_celular',       g('cob_celular'));
+    form.append('com_nombre',        g('com_nombre'));
+    form.append('com_cargo',         g('com_cargo'));
+    form.append('com_email',         g('com_email'));
+    form.append('com_celular',       g('com_celular'));
+    form.append('mpd1_val',          g('mpd1_val'));
+    form.append('mpd2_val',          g('mpd2_val'));
+    form.append('mpd3_val',          g('mpd3_val'));
+    form.append('mpd4a_val',         g('mpd4a_val'));
+    form.append('mpd4b_val',         g('mpd4b_val'));
+    form.append('detalle_pep',       g('detalle_pep'));
+    form.append('firma_nombre',      g('firma_nombre'));
+    form.append('firma_rut',         g('firma_rut'));
+
+    const fileVig = document.getElementById('doc_vigencia')?.files[0];
+    if(fileVig) form.append('doc_vigencia', fileVig);
+    form.append('doc_mpd_aceptado', 'true');
+
+    toast('Enviando solicitud...','ok');
+    const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/solicitudes/crear`, {method:'POST', body:form});
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.detail||'Error '+res.status);
+    }
+    const data = await res.json();
+    const solicitudId = data.id;
+
+    document.getElementById('form-wrapper').style.display  = 'none';
+    document.getElementById('progress-bar').style.display  = 'none';
+    const screen = document.getElementById('success-screen');
+    screen.classList.add('show');
+    const idEl = document.getElementById('solicitud-id-display');
+    if(idEl) idEl.textContent = solicitudId;
+    const copyBtn = document.getElementById('btn-copiar-id');
+    if(copyBtn) copyBtn.setAttribute('data-id', solicitudId);
+
+  } catch(e){
+    toast('Error al enviar: '+e.message,'err');
+    if(btn){ btn.disabled=false; btn.textContent='Enviar Solicitud ✓'; }
+  }
+}
 
 </script>
 </body>
