@@ -329,6 +329,18 @@ async function validarToken(){
     btn.textContent = 'Verificar acceso →'; btn.disabled = false;
   }
 }
+
+// ── Auto-leer token desde URL al cargar ──────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const tokenUrl = params.get('token');
+  if(tokenUrl){
+    const inp = document.getElementById('token-input');
+    if(inp) inp.value = tokenUrl.toUpperCase();
+    // Validar automáticamente
+    validarToken();
+  }
+});
 </script>
 <!-- pdf-lib: generar PDF dinámico -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
