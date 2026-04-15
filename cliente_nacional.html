@@ -813,11 +813,30 @@ window.addEventListener('DOMContentLoaded', () => {
           <div class="file-name" id="doc1-name"></div>
         </div>
 
+        <!-- Declaración Final — Representante -->
+        <div class="card" style="background:rgba(0,43,79,0.03);border-color:rgba(0,43,79,0.15)">
+          <div class="section-label">✍️ Declaración Final</div>
+          <p style="font-size:0.85rem;color:var(--fg);line-height:1.75">
+            Declaro que la información consignada en este formulario es correcta, que soy responsable de reportar cualquier cambio en las mismas y afirmo que realizo todas mis actividades dentro de la normativa legal vigente de Chile.<br/><br/>
+            <strong>Declaro no estar incluido en listas de sanciones internacionales (OFAC, ONU, UE, etc.).</strong>
+          </p>
+          <div class="form-grid" style="margin-top:1.2rem">
+            <div class="form-group">
+              <label>Nombre Representante Cliente <span class="req">*</span></label>
+              <input type="text" id="firma_nombre" placeholder="Nombre completo" />
+            </div>
+            <div class="form-group">
+              <label>RUT Representante <span class="req">*</span></label>
+              <input type="text" id="firma_rut" placeholder="12.345.678-9" />
+            </div>
+          </div>
+        </div>
+
         <!-- Declaración MPD — PDF viewer + checkbox -->
         <div class="card" id="doc2-card" style="padding:1.5rem">
           <div class="section-label">⚖️ Declaración Modelo de Prevención de Delitos (MPD) <span class="req">*</span></div>
           <p style="font-size:0.84rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
-            Lee el documento completo. Al llegar al final podrás aceptar la declaración.
+            Lee el documento completo y acepta la declaración.
           </p>
 
           <!-- PDF viewer — iframe directo -->
