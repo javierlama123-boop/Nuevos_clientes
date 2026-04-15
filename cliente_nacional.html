@@ -914,6 +914,14 @@ async function initMpdScroll(){
   if(hint) hint.style.display='none';
 }
 
+function habilitarMpdManual(){
+  mpdScrolled = true;
+  const area = document.getElementById('mpd-accept-area');
+  const hint = document.getElementById('mpd-scroll-hint');
+  if(area){ area.style.opacity='1'; area.style.pointerEvents='auto'; }
+  if(hint){ hint.style.display='none'; }
+}
+
 function toggleMpdCb(){
   const cb    = document.getElementById('acepta_mpd');
   const label = document.getElementById('mpd-cb-label');
@@ -1037,12 +1045,85 @@ function handleFile(docId, inputId, nameId, cardId){
   }
 }
 
-function submitForm(){
+function submitForm(){ enviarSolicitud(); }
+
+async function enviarSolicitud(){
   if(!validateStep(5)) return;
-  document.getElementById('form-wrapper').style.display='none';
-  document.getElementById('progress-bar').style.display='none';
-  document.getElementById('success-screen').classList.add('show');
-  toast('¡Solicitud enviada exitosamente!','ok');
+  const btn = document.querySelector('.btn.btn-salmon[onclick="enviarSolicitud()"]')
+           || document.querySelector('.btn-salmon');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Enviando...'; }
+
+  try {
+    const g    = id => (document.getElementById(id)?.value||'').trim();
+    const radio= name => document.querySelector(`input[name="${name}"]:checked`)?.value||'';
+
+    const form = new FormData();
+    form.append('token',             tokenDocId||'');
+    form.append('tipo_formulario',   'nacional');
+    form.append('fecha_formulario',  g('fecha'));
+    form.append('tipo_persona',      radio('tipo_persona'));
+    form.append('rut',               g('rut'));
+    form.append('razon_social',      g('razon_social'));
+    form.append('pais',              g('pais'));
+    form.append('region',            g('region'));
+    form.append('ciudad',            g('ciudad'));
+    form.append('direccion',         g('direccion'));
+    form.append('celular',           g('celular'));
+    form.append('telefono',          g('telefono'));
+    form.append('email_solicitante', g('email_solicitante'));
+    form.append('rl1_nombre',        g('rl1_nombre'));
+    form.append('rl1_rut',           g('rl1_rut'));
+    form.append('rl1_cargo',         g('rl1_cargo'));
+    form.append('rl2_nombre',        g('rl2_nombre'));
+    form.append('rl2_rut',           g('rl2_rut'));
+    form.append('rl2_cargo',         g('rl2_cargo'));
+    form.append('s1_nombre',         g('s1_nombre'));
+    form.append('s1_rut',            g('s1_rut'));
+    form.append('s2_nombre',         g('s2_nombre'));
+    form.append('s2_rut',            g('s2_rut'));
+    form.append('cob_nombre',        g('cob_nombre'));
+    form.append('cob_cargo',         g('cob_cargo'));
+    form.append('cob_email',         g('cob_email'));
+    form.append('cob_celular',       g('cob_celular'));
+    form.append('com_nombre',        g('com_nombre'));
+    form.append('com_cargo',         g('com_cargo'));
+    form.append('com_email',         g('com_email'));
+    form.append('com_celular',       g('com_celular'));
+    form.append('mpd1_val',          g('mpd1_val'));
+    form.append('mpd2_val',          g('mpd2_val'));
+    form.append('mpd3_val',          g('mpd3_val'));
+    form.append('mpd4a_val',         g('mpd4a_val'));
+    form.append('mpd4b_val',         g('mpd4b_val'));
+    form.append('detalle_pep',       g('detalle_pep'));
+    form.append('firma_nombre',      g('firma_nombre'));
+    form.append('firma_rut',         g('firma_rut'));
+
+    const fileVig = document.getElementById('doc_vigencia')?.files[0];
+    if(fileVig) form.append('doc_vigencia', fileVig);
+    form.append('doc_mpd_aceptado', 'true');
+
+    toast('Enviando solicitud...','ok');
+    const res = await fetch(`https://nuevosclientes-etghc4g5gahahvdg.eastus2-01.azurewebsites.net/api/solicitudes/crear`, {method:'POST', body:form});
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.detail||'Error '+res.status);
+    }
+    const data = await res.json();
+    const solicitudId = data.id;
+
+    document.getElementById('form-wrapper').style.display  = 'none';
+    document.getElementById('progress-bar').style.display  = 'none';
+    const screen = document.getElementById('success-screen');
+    screen.classList.add('show');
+    const idEl = document.getElementById('solicitud-id-display');
+    if(idEl) idEl.textContent = solicitudId;
+    const copyBtn = document.getElementById('btn-copiar-id');
+    if(copyBtn) copyBtn.setAttribute('data-id', solicitudId);
+
+  } catch(e){
+    toast('Error al enviar: '+e.message,'err');
+    if(btn){ btn.disabled=false; btn.textContent='Enviar Solicitud ✓'; }
+  }
 }
 </script>
 </body>
