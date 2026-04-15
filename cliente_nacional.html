@@ -998,10 +998,10 @@ function validateStep(n){
     }
   }
   if(n===5){
-    if(!document.getElementById('doc_vigencia').files.length){toast('Adjunta el Certificado de Vigencia','err');return false;}
-    if(!document.getElementById('doc_mpd').files.length){toast('Adjunta la Declaración MPD firmada','err');return false;}
-    if(!document.getElementById('firma_nombre').value.trim()){toast('Ingresa el nombre del representante','err');return false;}
-    if(!document.getElementById('acepta_declaracion').checked){toast('Debes aceptar la declaración final','err');return false;}
+    if(!document.getElementById('doc_vigencia')?.files?.length){toast('Adjunta el Certificado de Vigencia','err');return false;}
+    if(!document.getElementById('acepta_mpd')?.checked){toast('Debes aceptar la Declaración MPD','err');return false;}
+    if(!document.getElementById('firma_nombre')?.value?.trim()){toast('Ingresa el nombre del representante','err');return false;}
+    if(!document.getElementById('acepta_declaracion')?.checked){toast('Debes aceptar la declaración final','err');return false;}
   }
   return true;
 }
